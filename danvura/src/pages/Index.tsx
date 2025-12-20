@@ -9,7 +9,7 @@ const Index = () => {
     { number: "6+", label: "Years Experience" },
     { number: "100+", label: "Clients Served" },
     { number: "50M+", label: "Revenue Generated" },
-    { number: "250+", label: "Campaigns Launched" },
+    { number: "500+", label: "Campaigns Launched" },
   ];
 
   const services = [
@@ -98,7 +98,7 @@ const Index = () => {
                 <div className="w-64 h-80 sm:w-72 sm:h-96 md:w-80 md:h-[420px] lg:w-[340px] lg:h-[450px] rounded-2xl bg-secondary overflow-hidden border border-border/50 shadow-2xl relative group">
                   {/* Placeholder with initials */}
                   <div className="w-full h-full bg-gradient-to-b from-muted via-secondary to-card flex items-center justify-center">
-                    <img src="/media/danieladelola.png" alt="Daniel Adelola" className="w-full h-full object-cover rounded-2xl" />
+                    <span className="font-heading text-6xl md:text-7xl lg:text-8xl font-bold text-primary/20">DA</span>
                   </div>
                   {/* Overlay gradient */}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />

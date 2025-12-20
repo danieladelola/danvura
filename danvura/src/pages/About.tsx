@@ -128,12 +128,8 @@ const About = () => {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-muted to-secondary rounded-2xl overflow-hidden border border-border">
-                <img
-                  src="/media/danieladelola.png"
-                  alt="Daniel Adelola"
-                  className="w-full h-full object-cover"
-                />
+              <div className="aspect-square bg-gradient-to-br from-muted to-secondary rounded-2xl flex items-center justify-center border border-border">
+                <span className="font-heading text-8xl font-bold text-primary/20">DA</span>
               </div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary/20 rounded-2xl" />
               <div className="absolute -top-6 -left-6 w-24 h-24 border-4 border-primary rounded-2xl" />
