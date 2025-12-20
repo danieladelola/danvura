@@ -1,49 +1,60 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const navLinks = [
-    { href: "#about", label: "About" },
-    { href: "#services", label: "Services" },
-    { href: "#work", label: "Work" },
-    { href: "#testimonials", label: "Testimonials" },
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About Me" },
+    { href: "/blog", label: "Blog" },
+    { href: "/portfolio", label: "My Portfolio" },
+    { href: "/email-list", label: "Email List" },
+    { href: "/training", label: "Training Programs" },
+    { href: "/resources", label: "Resources" },
   ];
 
+  const isActive = (href: string) => location.pathname === href;
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container-wide mx-auto px-6 md:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="#" className="font-heading font-bold text-xl md:text-2xl text-foreground">
+          <Link to="/" className="font-heading font-bold text-xl md:text-2xl text-foreground">
             Daniel<span className="text-primary">.</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
-                className="text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium link-underline"
+                to={link.href}
+                className={`text-sm font-medium transition-colors duration-300 ${
+                  isActive(link.href)
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:block">
-            <Button variant="hero" size="lg" asChild>
-              <a href="#contact">Work With Me</a>
+          <div className="hidden lg:block">
+            <Button variant="hero" size="default" asChild>
+              <Link to="/email-list">Join My List</Link>
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground"
+            className="lg:hidden p-2 text-foreground"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -53,22 +64,26 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-6 border-t border-border animate-fade-in">
-            <nav className="flex flex-col gap-4">
+          <div className="lg:hidden py-6 border-t border-border animate-fade-in">
+            <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
-                  className="text-foreground font-medium py-2 hover:text-primary transition-colors"
+                  to={link.href}
+                  className={`font-medium py-3 px-4 rounded-lg transition-colors ${
+                    isActive(link.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-foreground hover:bg-muted"
+                  }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
               <Button variant="hero" size="lg" className="mt-4" asChild>
-                <a href="#contact" onClick={() => setIsMenuOpen(false)}>
-                  Work With Me
-                </a>
+                <Link to="/email-list" onClick={() => setIsMenuOpen(false)}>
+                  Join My List
+                </Link>
               </Button>
             </nav>
           </div>
