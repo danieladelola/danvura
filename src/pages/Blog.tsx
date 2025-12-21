@@ -1,63 +1,18 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
+import { useBlogPosts } from '@/hooks/useBlogPosts';
 
 const Blog = () => {
-  const featuredPost = {
-    title: "The Complete Guide to Digital Marketing in 2024",
-    excerpt: "Everything you need to know about building a successful digital marketing strategy this year. From AI integration to authentic content creation.",
-    category: "Strategy",
-    date: "December 15, 2024",
-    readTime: "12 min read",
-    image: null,
-  };
-
-  const posts = [
-    {
-      title: "5 Social Media Trends That Will Define 2025",
-      excerpt: "Stay ahead of the curve with these emerging trends that will shape how brands connect with audiences on social media.",
-      category: "Social Media",
-      date: "December 10, 2024",
-      readTime: "8 min read",
-    },
-    {
-      title: "How to Build a Lead Generation Machine",
-      excerpt: "A step-by-step framework for creating systems that consistently attract and convert high-quality leads for your business.",
-      category: "Lead Generation",
-      date: "December 5, 2024",
-      readTime: "10 min read",
-    },
-    {
-      title: "The Psychology Behind High-Converting Landing Pages",
-      excerpt: "Understanding the psychological triggers that make visitors take action and how to implement them effectively.",
-      category: "Conversion",
-      date: "November 28, 2024",
-      readTime: "7 min read",
-    },
-    {
-      title: "Email Marketing Secrets: From Zero to 50% Open Rates",
-      excerpt: "Practical strategies I've used to help clients achieve exceptional email marketing performance.",
-      category: "Email Marketing",
-      date: "November 20, 2024",
-      readTime: "9 min read",
-    },
-    {
-      title: "Brand Positioning: Standing Out in a Crowded Market",
-      excerpt: "How to develop a unique market position that makes your brand memorable and irresistible to your ideal customers.",
-      category: "Branding",
-      date: "November 15, 2024",
-      readTime: "11 min read",
-    },
-    {
-      title: "The ROI of Content Marketing: A Data-Driven Analysis",
-      excerpt: "Breaking down the real numbers behind content marketing and how to maximize your return on investment.",
-      category: "Content",
-      date: "November 10, 2024",
-      readTime: "8 min read",
-    },
-  ];
+  const { getPublishedPosts, isLoading } = useBlogPosts();
+  const [selectedCategory, setSelectedCategory] = useState('All Posts');
+  
+  const posts = getPublishedPosts();
+  const featuredPost = posts[0];
+  const otherPosts = posts.slice(1);
 
   const categories = [
     "All Posts",
@@ -69,6 +24,10 @@ const Blog = () => {
     "Content",
     "SEO",
   ];
+
+  const filteredPosts = selectedCategory === 'All Posts' 
+    ? otherPosts 
+    : otherPosts.filter(post => post.category === selectedCategory);
 
   return (
     <main className="min-h-screen bg-background">
@@ -95,11 +54,12 @@ const Blog = () => {
       <section className="py-8 border-y border-border overflow-x-auto">
         <div className="container-wide mx-auto px-6 md:px-8">
           <div className="flex gap-4 min-w-max">
-            {categories.map((category, index) => (
+            {categories.map((category) => (
               <button
-                key={index}
+                key={category}
+                onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  index === 0
+                  selectedCategory === category
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
                 }`}
@@ -112,86 +72,91 @@ const Blog = () => {
       </section>
 
       {/* Featured Post */}
-      <section className="section-padding">
-        <div className="container-wide mx-auto">
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="grid lg:grid-cols-2 gap-0">
-              <div className="aspect-video lg:aspect-auto bg-gradient-to-br from-primary/20 to-muted flex items-center justify-center">
-                <span className="text-6xl font-heading font-bold text-primary/30">Featured</span>
-              </div>
-              <div className="p-8 md:p-12 flex flex-col justify-center">
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                    {featuredPost.category}
-                  </span>
-                  <span className="text-muted-foreground text-sm flex items-center gap-1">
-                    <Calendar size={14} />
-                    {featuredPost.date}
-                  </span>
+      {featuredPost && (
+        <section className="section-padding">
+          <div className="container-wide mx-auto">
+            <Link to={`/blog/${featuredPost.slug}`} className="block">
+              <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all">
+                <div className="grid lg:grid-cols-2 gap-0">
+                  <div className="aspect-video lg:aspect-auto bg-gradient-to-br from-primary/20 to-muted flex items-center justify-center">
+                    <span className="text-6xl font-heading font-bold text-primary/30">Featured</span>
+                  </div>
+                  <div className="p-8 md:p-12 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-4">
+                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                        {featuredPost.category}
+                      </span>
+                      <span className="text-muted-foreground text-sm flex items-center gap-1">
+                        <Calendar size={14} />
+                        {new Date(featuredPost.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-4">
+                      {featuredPost.title}
+                    </h2>
+                    <p className="text-muted-foreground text-lg mb-6">{featuredPost.excerpt}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm flex items-center gap-1">
+                        <Clock size={14} />
+                        {featuredPost.readTime}
+                      </span>
+                      <Button variant="hero" size="default">
+                        Read Article
+                        <ArrowRight className="ml-2" size={16} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-4">
-                  {featuredPost.title}
-                </h2>
-                <p className="text-muted-foreground text-lg mb-6">{featuredPost.excerpt}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-sm flex items-center gap-1">
-                    <Clock size={14} />
-                    {featuredPost.readTime}
-                  </span>
-                  <Button variant="hero" size="default">
-                    Read Article
-                    <ArrowRight className="ml-2" size={16} />
-                  </Button>
-                </div>
               </div>
-            </div>
+            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Posts Grid */}
       <section className="section-padding pt-0">
         <div className="container-wide mx-auto">
           <h3 className="text-2xl font-heading font-bold text-foreground mb-8">Latest Articles</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {posts.map((post, index) => (
-              <article
-                key={index}
-                className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300"
-              >
-                <div className="aspect-video bg-gradient-to-br from-muted to-secondary flex items-center justify-center">
-                  <span className="text-2xl font-heading font-bold text-primary/20">{post.category}</span>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
-                      {post.category}
-                    </span>
-                    <span className="text-muted-foreground text-xs">{post.date}</span>
+            {filteredPosts.map((post) => (
+              <Link key={post.id} to={`/blog/${post.slug}`}>
+                <article className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 h-full">
+                  <div className="aspect-video bg-gradient-to-br from-muted to-secondary flex items-center justify-center">
+                    <span className="text-2xl font-heading font-bold text-primary/20">{post.category}</span>
                   </div>
-                  <h4 className="text-lg font-heading font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                    {post.title}
-                  </h4>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{post.excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-xs flex items-center gap-1">
-                      <Clock size={12} />
-                      {post.readTime}
-                    </span>
-                    <span className="text-primary text-sm font-medium group-hover:underline cursor-pointer">
-                      Read more →
-                    </span>
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
+                        {post.category}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {new Date(post.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-heading font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h4>
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{post.excerpt}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground text-xs flex items-center gap-1">
+                        <Clock size={12} />
+                        {post.readTime}
+                      </span>
+                      <span className="text-primary text-sm font-medium group-hover:underline">
+                        Read more →
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <Button variant="outline-dark" size="lg">
-              Load More Articles
-            </Button>
-          </div>
+          {filteredPosts.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No posts found in this category.</p>
+            </div>
+          )}
         </div>
       </section>
 
