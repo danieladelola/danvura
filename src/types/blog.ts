@@ -13,6 +13,7 @@ export interface BlogPost {
   updatedAt: string;
   views: number;
   readTime: string;
+  featuredImage: string | null;
 }
 
 export interface AnalyticsData {

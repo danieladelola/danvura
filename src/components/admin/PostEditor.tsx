@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { BlogPost } from '@/types/blog';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Eye, ArrowLeft, X } from 'lucide-react';
+import { Save, Eye, ArrowLeft, X, Upload, Image } from 'lucide-react';
 
 interface PostEditorProps {
   postId?: string;
@@ -29,9 +29,12 @@ const PostEditor = ({ postId }: PostEditorProps) => {
     keywords: [] as string[],
     status: 'draft' as 'draft' | 'published',
     readTime: '5 min read',
+    featuredImage: null as string | null,
   });
   
   const [keywordInput, setKeywordInput] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (postId) {
@@ -48,7 +51,9 @@ const PostEditor = ({ postId }: PostEditorProps) => {
           keywords: post.keywords,
           status: post.status,
           readTime: post.readTime,
+          featuredImage: post.featuredImage,
         });
+        setImagePreview(post.featuredImage);
       }
     }
   }, [postId, posts]);
@@ -85,6 +90,48 @@ const PostEditor = ({ postId }: PostEditorProps) => {
       ...prev,
       keywords: prev.keywords.filter(k => k !== keyword),
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload a JPG, PNG, or GIF image.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Please upload an image smaller than 5MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setImagePreview(result);
+        setFormData(prev => ({ ...prev, featuredImage: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, featuredImage: null }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = (status: 'draft' | 'published') => {
@@ -216,6 +263,61 @@ const PostEditor = ({ postId }: PostEditorProps) => {
                 className="mt-1"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Featured Image */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+          <h2 className="text-lg font-heading font-bold text-foreground">Featured Image</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="featuredImage">Upload Featured Image</Label>
+              <div className="mt-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="featuredImage"
+                  accept="image/jpeg,image/jpg,image/png,image/gif"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 transition-colors"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload size={24} className="text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to upload image (JPG, PNG, GIF - Max 5MB)
+                    </span>
+                  </div>
+                </Button>
+              </div>
+            </div>
+
+            {imagePreview && (
+              <div className="relative">
+                <div className="aspect-video w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
+                  <img
+                    src={imagePreview}
+                    alt="Featured image preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2"
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

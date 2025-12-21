@@ -79,7 +79,15 @@ const Blog = () => {
               <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/50 transition-all">
                 <div className="grid lg:grid-cols-2 gap-0">
                   <div className="aspect-video lg:aspect-auto bg-gradient-to-br from-primary/20 to-muted flex items-center justify-center">
-                    <span className="text-6xl font-heading font-bold text-primary/30">Featured</span>
+                    {featuredPost.featuredImage ? (
+                      <img
+                        src={featuredPost.featuredImage}
+                        alt={featuredPost.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-6xl font-heading font-bold text-primary/30">Featured</span>
+                    )}
                   </div>
                   <div className="p-8 md:p-12 flex flex-col justify-center">
                     <div className="flex items-center gap-4 mb-4">
@@ -122,7 +130,15 @@ const Blog = () => {
               <Link key={post.id} to={`/blog/${post.slug}`}>
                 <article className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 h-full">
                   <div className="aspect-video bg-gradient-to-br from-muted to-secondary flex items-center justify-center">
-                    <span className="text-2xl font-heading font-bold text-primary/20">{post.category}</span>
+                    {post.featuredImage ? (
+                      <img
+                        src={post.featuredImage}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl font-heading font-bold text-primary/20">{post.category}</span>
+                    )}
                   </div>
                   <div className="p-6">
                     <div className="flex items-center gap-4 mb-3">

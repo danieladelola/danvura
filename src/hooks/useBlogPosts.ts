@@ -19,6 +19,7 @@ const defaultPosts: BlogPost[] = [
     updatedAt: '2024-12-15T10:00:00Z',
     views: 1250,
     readTime: '12 min read',
+    featuredImage: null,
   },
   {
     id: '2',
@@ -35,6 +36,7 @@ const defaultPosts: BlogPost[] = [
     updatedAt: '2024-12-10T10:00:00Z',
     views: 890,
     readTime: '8 min read',
+    featuredImage: null,
   },
   {
     id: '3',
@@ -51,6 +53,7 @@ const defaultPosts: BlogPost[] = [
     updatedAt: '2024-12-05T10:00:00Z',
     views: 654,
     readTime: '10 min read',
+    featuredImage: null,
   },
 ];
 

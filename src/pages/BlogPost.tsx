@@ -80,6 +80,21 @@ const BlogPost = () => {
           </div>
         </section>
 
+        {/* Featured Image */}
+        {post.featuredImage && (
+          <section className="pb-16">
+            <div className="container-narrow mx-auto px-6 md:px-8">
+              <div className="aspect-video w-full bg-muted rounded-xl overflow-hidden">
+                <img
+                  src={post.featuredImage}
+                  alt={post.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Content */}
         <section className="pb-16">
           <div className="container-narrow mx-auto px-6 md:px-8">

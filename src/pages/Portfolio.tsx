@@ -2,98 +2,40 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, TrendingUp, Users, DollarSign } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 const Portfolio = () => {
-  const stats = [
-    { icon: DollarSign, number: "₦50M+", label: "Revenue Generated" },
-    { icon: Users, number: "100+", label: "Clients Served" },
-    { icon: TrendingUp, number: "300%", label: "Average Growth" },
-  ];
+  const [selectedIndustry, setSelectedIndustry] = useState("All");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const projects = [
-    {
-      title: "Lumina Fashion - E-commerce Launch",
-      category: "Brand Strategy + Digital Marketing",
-      description: "Complete brand development and go-to-market strategy for a fashion startup. Built their online presence from zero to a thriving e-commerce business.",
-      results: [
-        "500+ customers in first month",
-        "3x social media following growth",
-        "45% engagement rate on content",
-        "₦5M revenue in first quarter",
-      ],
-      industry: "Fashion & Retail",
-    },
-    {
-      title: "TechBridge Solutions - B2B Lead Generation",
-      category: "Growth Marketing + Automation",
-      description: "Developed a comprehensive lead generation system for a B2B consulting firm, implementing LinkedIn marketing and email automation.",
-      results: [
-        "150+ qualified leads per month",
-        "40% email open rate",
-        "2x revenue growth in 6 months",
-        "60% reduction in cost per lead",
-      ],
-      industry: "Technology",
-    },
-    {
-      title: "GreenLeaf Foods - Restaurant Chain Rebrand",
-      category: "Brand Strategy + Social Media",
-      description: "Complete rebranding and social media overhaul for a local restaurant chain, resulting in increased foot traffic and online orders.",
-      results: [
-        "80% brand awareness increase",
-        "10K+ new social followers",
-        "35% increase in online orders",
-        "Featured in 3 major publications",
-      ],
-      industry: "Food & Beverage",
-    },
-    {
-      title: "FinanceHub - Financial Services Marketing",
-      category: "Content Marketing + SEO",
-      description: "Established thought leadership and organic visibility for a financial services startup through strategic content marketing.",
-      results: [
-        "500% increase in organic traffic",
-        "Top 3 rankings for target keywords",
-        "200+ monthly organic leads",
-        "₦10M in attributed revenue",
-      ],
-      industry: "Financial Services",
-    },
-    {
-      title: "HealthPlus Pharmacy - Multi-Location Growth",
-      category: "Local Marketing + Paid Ads",
-      description: "Drove foot traffic and brand awareness for a pharmacy chain expanding to new locations across Lagos.",
-      results: [
-        "3 successful new location launches",
-        "5x return on ad spend",
-        "15K new loyalty members",
-        "40% increase in prescription refills",
-      ],
-      industry: "Healthcare",
-    },
-    {
-      title: "EduPro Academy - Online Course Launch",
-      category: "Launch Strategy + Email Marketing",
-      description: "Developed and executed launch strategy for an online education platform, building an engaged community before launch.",
-      results: [
-        "5,000+ email subscribers pre-launch",
-        "₦8M in launch week revenue",
-        "92% course completion rate",
-        "4.9/5 student satisfaction score",
-      ],
-      industry: "Education",
-    },
+  const media = [
+    { type: 'image', src: '/media/branddesigns/446280478_465231482561874_7528450714226636932_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/447527290_981998300100369_2807892636832040426_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/448261432_1164622354663212_1149395205946857127_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/448313064_478480951205505_2932951767333188586_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/Ci-gusta-friday-post.png', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/Ci-gusta-tuesday-post.png', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/FRIDAY.png', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/Happy-new-month-Cigusta.png', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_11_497616059_17846212437474109_3290314121049775025_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_14_496781739_17845562637474109_4141347250594940703_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_18_495229609_17844195231474109_2713287649718782730_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_19_494600703_17844050934474109_8686592235943530525_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_37_484168125_577750355316775_8756012708938128711_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_66_484328533_577005612057916_4437406468888322446_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_69_484536108_576998275391983_2326735204186050649_n.jpg', services: ["Brand Design"] },
+    { type: 'image', src: '/media/branddesigns/imgi_74_484506342_576990332059444_2987102447484364381_n.jpg', services: ["Brand Design"] },
+    { type: 'video', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ', services: ["Video Creation/editing"] },
+    { type: 'video', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ', services: ["Video Creation/editing"] },
   ];
 
   const industries = [
-    "All Industries",
-    "Fashion & Retail",
-    "Technology",
-    "Food & Beverage",
-    "Financial Services",
-    "Healthcare",
-    "Education",
+    "All",
+    "Brand Design",
+    "Web Designs",
+    "Video Creation/editing",
+    "AdvertIsing",
   ];
 
   return (
@@ -118,34 +60,16 @@ const Portfolio = () => {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-12 border-y border-border">
-        <div className="container-wide mx-auto px-6 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="flex items-center gap-4 justify-center md:justify-start">
-                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <stat.icon size={28} className="text-primary" />
-                </div>
-                <div>
-                  <div className="text-3xl font-heading font-bold text-foreground">{stat.number}</div>
-                  <div className="text-muted-foreground text-sm">{stat.label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Filter */}
-      <section className="py-8 overflow-x-auto">
+      <section className="py-8">
         <div className="container-wide mx-auto px-6 md:px-8">
-          <div className="flex gap-4 min-w-max">
+          <div className="flex flex-wrap gap-4">
             {industries.map((industry, index) => (
               <button
                 key={index}
+                onClick={() => setSelectedIndustry(industry)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  index === 0
+                  selectedIndustry === industry
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
                 }`}
@@ -160,46 +84,19 @@ const Portfolio = () => {
       {/* Projects */}
       <section className="section-padding pt-8">
         <div className="container-wide mx-auto">
-          <div className="space-y-8">
-            {projects.map((project, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {media
+              .filter(item => selectedIndustry === "All" || item.services.includes(selectedIndustry))
+              .map((item, index) => (
               <div
                 key={index}
-                className="group bg-card border border-border rounded-2xl p-8 md:p-10 hover:border-primary/50 hover:shadow-red transition-all duration-300"
+                className="group bg-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300"
               >
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                        {project.industry}
-                      </span>
-                      <span className="text-muted-foreground text-sm">{project.category}</span>
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-4 flex items-center gap-3">
-                      {project.title}
-                      <ArrowUpRight
-                        size={24}
-                        className="opacity-0 group-hover:opacity-100 text-primary transition-opacity"
-                      />
-                    </h3>
-                    <p className="text-muted-foreground text-lg max-w-2xl mb-6">
-                      {project.description}
-                    </p>
-                  </div>
-                  <div className="lg:w-80">
-                    <h4 className="text-sm font-medium text-foreground mb-4">Key Results:</h4>
-                    <div className="space-y-3">
-                      {project.results.map((result, resultIndex) => (
-                        <div
-                          key={resultIndex}
-                          className="flex items-center gap-3 px-4 py-3 bg-background border border-border rounded-lg"
-                        >
-                          <TrendingUp size={16} className="text-primary flex-shrink-0" />
-                          <span className="text-foreground text-sm">{result}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                {item.type === 'image' ? (
+                  <img src={item.src} alt="" className="w-full h-auto object-contain cursor-pointer" onClick={() => setSelectedImage(item.src)} />
+                ) : (
+                  <iframe src={item.src} className="w-full aspect-[9/16]" allowFullScreen />
+                )}
               </div>
             ))}
           </div>
@@ -230,6 +127,18 @@ const Portfolio = () => {
       </section>
 
       <Footer />
+
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setSelectedImage(null)}>
+          <img src={selectedImage} alt="" className="max-w-[90%] max-h-[90%] object-contain" />
+          <button 
+            className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 transition-colors" 
+            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </main>
   );
 };

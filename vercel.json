@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/folio", "destination": "/portfolio", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
