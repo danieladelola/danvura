@@ -103,6 +103,106 @@ const Portfolio = () => {
         </div>
       </section>
 
+      {/* Brand Logos */}
+      <section className="py-16 bg-black">
+        <div className="container-wide mx-auto px-6 md:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-heading font-bold text-white mb-4">
+              Brands I've Worked With
+            </h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">
+              Trusted by leading brands across various industries
+            </p>
+          </div>
+          <div className="grid grid-cols-4 gap-6">
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/11fab788be9d356bd8f8b622c54006eb.jpg" 
+                alt="Brand Logo 1" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/EEDSL-SP-Logo-white-scaled.jpeg" 
+                alt="Brand Logo 2" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/afrisafe-logo-2025-3.png" 
+                alt="Brand Logo 3" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/guddx0v0_400x400.jpg" 
+                alt="Brand Logo 4" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/1630478076101.jpg" 
+                alt="Brand Logo 5" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/images (1).jpg" 
+                alt="Brand Logo 6" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/images.jpg" 
+                alt="Brand Logo 7" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/images.png" 
+                alt="Brand Logo 8" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/green.png" 
+                alt="Brand Logo 9" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/launch_image.jpeg" 
+                alt="Brand Logo 10" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/seplat.jpg" 
+                alt="Brand Logo 11" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+            <div className="flex items-center justify-center">
+              <img 
+                src="/media/brandlogo/vura.jpg" 
+                alt="Brand Logo 12" 
+                className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="section-padding bg-card">
         <div className="container-narrow mx-auto text-center">
