@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Linkedin, Twitter, Instagram, Youtube, Mail } from "lucide-react";
+import { Linkedin, Twitter, Instagram, Youtube, Mail, Phone } from "lucide-react";
 
 const WhatsAppIcon = () => (
   <svg
@@ -87,6 +87,13 @@ const Footer = () => {
                 <Mail size={16} />
                 hello@danadelola.com
               </a>
+              <a
+                href="tel:+2348165402803"
+                className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
+              >
+                <Phone size={16} />
+                +2348165402803
+              </a>
               <p className="text-muted-foreground text-sm">Available for projects worldwide</p>
             </div>
           </div>
@@ -98,12 +105,12 @@ const Footer = () => {
             © {currentYear} Daniel Adelola. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+            <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
               Privacy Policy
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+            </Link>
+            <Link to="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors text-sm">
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </div>

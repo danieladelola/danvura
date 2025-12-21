@@ -14,6 +14,8 @@ import Portfolio from "./pages/Portfolio";
 import EmailList from "./pages/EmailList";
 import Training from "./pages/Training";
 import Resources from "./pages/Resources";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -43,6 +45,8 @@ const App = () => (
               <Route path="/email-list" element={<EmailList />} />
               <Route path="/training" element={<Training />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
               
               {/* Admin Routes */}
               <Route path="/admin/login" element={<AdminLogin />} />
