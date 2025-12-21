@@ -8,6 +8,7 @@ import { BlogPost } from '@/types/blog';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Eye, ArrowLeft, X, Upload, Image } from 'lucide-react';
+import { Editor } from '@tinymce/tinymce-react';
 
 interface PostEditorProps {
   postId?: string;
@@ -35,6 +36,7 @@ const PostEditor = ({ postId }: PostEditorProps) => {
   const [keywordInput, setKeywordInput] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<any>(null);
 
   useEffect(() => {
     if (postId) {
@@ -325,15 +327,81 @@ const PostEditor = ({ postId }: PostEditorProps) => {
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           <h2 className="text-lg font-heading font-bold text-foreground">Content</h2>
           <div>
-            <Label htmlFor="content">Post Content (HTML supported)</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="<p>Write your post content here...</p>"
-              rows={15}
-              className="mt-1 font-mono text-sm"
-            />
+            <Label htmlFor="content">Post Content</Label>
+            <div className="mt-1">
+              <Editor
+                apiKey="7w9971yp1q05yrh9rw4yflf5v4iwlrmho290zfkq2le18scc"
+                onInit={(evt, editor) => editorRef.current = editor}
+                value={formData.content}
+                onEditorChange={(content) => setFormData(prev => ({ ...prev, content }))}
+                init={{
+                  height: 500,
+                  menubar: false,
+                  skin: 'oxide-dark',
+                  content_css: false,
+                  plugins: [
+                    'lists', 'link', 'table', 'hr', 'textcolor', 'colorpicker', 'charmap',
+                    'undo', 'redo', 'wordcount', 'indent', 'align', 'blockquote',
+                    'strikethrough', 'forecolor', 'backcolor', 'removeformat'
+                  ],
+                  toolbar: 'blocks fontsize | bold italic strikethrough | alignleft aligncenter alignright | bullist numlist | blockquote | link table hr | forecolor backcolor | charmap | indent outdent | undo redo | removeformat',
+                  fontsize: '16px',
+                  content_style: `
+                    body {
+                      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                      font-size: 16px;
+                      line-height: 1.6;
+                      color: #ffffff;
+                      background-color: #1f2937;
+                      margin: 16px;
+                    }
+                    p { margin: 0 0 1em 0; }
+                    h1, h2, h3, h4, h5, h6 {
+                      color: #ffffff;
+                      font-weight: 600;
+                      margin: 1em 0 0.5em 0;
+                    }
+                    h1 { font-size: 2em; }
+                    h2 { font-size: 1.5em; }
+                    h3 { font-size: 1.25em; }
+                    ul, ol { margin: 1em 0; padding-left: 2em; }
+                    blockquote {
+                      border-left: 4px solid #dc2626;
+                      padding-left: 16px;
+                      margin: 1em 0;
+                      color: #e5e7eb;
+                      font-style: italic;
+                    }
+                    table { border-collapse: collapse; margin: 1em 0; width: 100%; }
+                    table td, table th {
+                      border: 1px solid #374151;
+                      padding: 8px;
+                      text-align: left;
+                    }
+                    table th { background-color: #111827; font-weight: 600; }
+                    a { color: #dc2626; text-decoration: none; }
+                    a:hover { text-decoration: underline; }
+                  `,
+                  statusbar: true,
+                  branding: false,
+                  elementpath: false,
+                  resize: false,
+                  toolbar_mode: 'sliding',
+                  setup: (editor) => {
+                    editor.on('keydown', (e) => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                          editor.execCommand('Outdent');
+                        } else {
+                          editor.execCommand('Indent');
+                        }
+                      }
+                    });
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
 

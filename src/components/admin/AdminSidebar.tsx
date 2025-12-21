@@ -5,25 +5,61 @@ import {
   BarChart3, 
   LogOut, 
   PlusCircle,
-  Settings
+  Settings,
+  Image,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const AdminSidebar = () => {
   const location = useLocation();
   const { logout } = useAdminAuth();
+  const [expandedSections, setExpandedSections] = useState<string[]>(['blog']);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-    { icon: FileText, label: 'All Posts', path: '/admin/posts' },
-    { icon: PlusCircle, label: 'Create Post', path: '/admin/posts/new' },
+    {
+      icon: FileText,
+      label: 'Blog',
+      path: '/admin/blog',
+      submenu: [
+        { icon: FileText, label: 'All Posts', path: '/admin/posts' },
+        { icon: PlusCircle, label: 'Create Post', path: '/admin/posts/new' },
+      ]
+    },
+    {
+      icon: Image,
+      label: 'Portfolio',
+      path: '/admin/portfolio',
+      submenu: [
+        { icon: Image, label: 'All Portfolio', path: '/admin/portfolio' },
+        { icon: PlusCircle, label: 'Add Portfolio', path: '/admin/portfolio/new' },
+      ]
+    },
     { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
   ];
+
+  const toggleSection = (sectionLabel: string) => {
+    setExpandedSections(prev =>
+      prev.includes(sectionLabel)
+        ? prev.filter(s => s !== sectionLabel)
+        : [...prev, sectionLabel]
+    );
+  };
 
   const isActive = (path: string) => {
     if (path === '/admin') return location.pathname === '/admin';
     return location.pathname.startsWith(path);
+  };
+
+  const isSectionActive = (item: any) => {
+    if (item.submenu) {
+      return item.submenu.some((subItem: any) => isActive(subItem.path));
+    }
+    return isActive(item.path);
   };
 
   return (
@@ -44,18 +80,62 @@ const AdminSidebar = () => {
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.path}>
-              <Link
-                to={item.path}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
-                  isActive(item.path)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </Link>
+              {item.submenu ? (
+                <div>
+                  <button
+                    onClick={() => toggleSection(item.label.toLowerCase())}
+                    className={cn(
+                      'w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-all',
+                      isSectionActive(item)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon size={18} />
+                      {item.label}
+                    </div>
+                    {expandedSections.includes(item.label.toLowerCase()) ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                  </button>
+                  {expandedSections.includes(item.label.toLowerCase()) && (
+                    <ul className="ml-6 mt-1 space-y-1">
+                      {item.submenu.map((subItem: any) => (
+                        <li key={subItem.path}>
+                          <Link
+                            to={subItem.path}
+                            className={cn(
+                              'flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                              isActive(subItem.path)
+                                ? 'bg-primary/20 text-primary border-l-2 border-primary'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            )}
+                          >
+                            <subItem.icon size={16} />
+                            {subItem.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to={item.path}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all',
+                    isActive(item.path)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

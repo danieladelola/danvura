@@ -16,6 +16,19 @@ export interface BlogPost {
   featuredImage: string | null;
 }
 
+export interface PortfolioItem {
+  id: string;
+  title: string;
+  category: PortfolioCategory;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  status: 'draft' | 'published';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PortfolioCategory = 'Brand Design' | 'Web Designs' | 'Influencer' | 'AdvertIsing' | 'Video Creation/editing';
+
 export interface AnalyticsData {
   totalVisits: number;
   totalPageViews: number;

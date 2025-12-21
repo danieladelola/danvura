@@ -4,33 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { usePortfolioItems } from "@/hooks/usePortfolioItems";
+import { PortfolioCategory } from "@/types/blog";
+
+type PortfolioFilter = PortfolioCategory | 'All';
 
 const Portfolio = () => {
-  const [selectedIndustry, setSelectedIndustry] = useState("All");
+  const { getItemsByCategory } = usePortfolioItems();
+  const [selectedIndustry, setSelectedIndustry] = useState<PortfolioFilter>("All");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const media = [
-    { type: 'image', src: '/media/branddesigns/446280478_465231482561874_7528450714226636932_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/447527290_981998300100369_2807892636832040426_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/448261432_1164622354663212_1149395205946857127_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/448313064_478480951205505_2932951767333188586_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/Ci-gusta-friday-post.png', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/Ci-gusta-tuesday-post.png', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/FRIDAY.png', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/Happy-new-month-Cigusta.png', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_11_497616059_17846212437474109_3290314121049775025_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_14_496781739_17845562637474109_4141347250594940703_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_18_495229609_17844195231474109_2713287649718782730_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_19_494600703_17844050934474109_8686592235943530525_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_37_484168125_577750355316775_8756012708938128711_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_66_484328533_577005612057916_4437406468888322446_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_69_484536108_576998275391983_2326735204186050649_n.jpg', services: ["Brand Design"] },
-    { type: 'image', src: '/media/branddesigns/imgi_74_484506342_576990332059444_2987102447484364381_n.jpg', services: ["Brand Design"] },
-    { type: 'video', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ', services: ["Video Creation/editing"] },
-    { type: 'video', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ', services: ["Video Creation/editing"] },
-  ];
+  const media = getItemsByCategory(selectedIndustry);
 
-  const industries = [
+  const industries: PortfolioFilter[] = [
     "All",
     "Brand Design",
     "Web Designs",
@@ -87,16 +73,15 @@ const Portfolio = () => {
         <div className="container-wide mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {media
-              .filter(item => selectedIndustry === "All" || item.services.includes(selectedIndustry))
-              .map((item, index) => (
+              .map((item) => (
               <div
-                key={index}
+                key={item.id}
                 className="group bg-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300"
               >
-                {item.type === 'image' ? (
-                  <img src={item.src} alt="" className="w-full h-auto object-contain cursor-pointer" onClick={() => setSelectedImage(item.src)} />
+                {item.mediaType === 'image' ? (
+                  <img src={item.mediaUrl} alt={item.title} className="w-full h-auto object-contain cursor-pointer" onClick={() => setSelectedImage(item.mediaUrl)} />
                 ) : (
-                  <iframe src={item.src} className="w-full aspect-[9/16]" allowFullScreen />
+                  <video src={item.mediaUrl} className="w-full aspect-[9/16] object-cover" controls />
                 )}
               </div>
             ))}
