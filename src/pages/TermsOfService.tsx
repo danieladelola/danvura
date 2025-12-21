@@ -19,7 +19,7 @@ const TermsOfService = () => {
               </h1>
               <div className="w-24 h-1 bg-primary mx-auto mb-8"></div>
               <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                Please read these terms carefully before using our digital marketing services.
+                Please read these terms carefully before using my digital marketing services.
               </p>
             </div>
 
@@ -129,9 +129,8 @@ const TermsOfService = () => {
                     Intellectual Property
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    All content, features, and functionality of our website and services are owned by Daniel Adelola
-                    and are protected by copyright, trademark, and other intellectual property laws. You may not
-                    reproduce, distribute, or create derivative works without explicit permission.
+                    I own all content, features, and functionality of my website and services, and they are protected by copyright, trademark, and other intellectual property laws. You may not
+                    reproduce, distribute, or create derivative works without my explicit permission.
                   </p>
                 </section>
 
@@ -143,8 +142,8 @@ const TermsOfService = () => {
                     Limitation of Liability
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    Daniel Adelola shall not be liable for any indirect, incidental, special, or consequential damages
-                    arising out of or in connection with the use of our services. Our total liability shall not exceed
+                    I shall not be liable for any indirect, incidental, special, or consequential damages
+                    arising out of or in connection with the use of my services. My total liability shall not exceed
                     the amount paid for the specific service in question.
                   </p>
                 </section>
@@ -196,8 +195,8 @@ const TermsOfService = () => {
                     Changes to Terms
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    We reserve the right to modify these terms at any time. Changes will be effective immediately
-                    upon posting on this page. Your continued use of our services constitutes acceptance of the
+                    I reserve the right to modify these terms at any time. Changes will be effective immediately
+                    upon posting on this page. Your continued use of my services constitutes acceptance of the
                     modified terms.
                   </p>
                 </section>
@@ -207,10 +206,10 @@ const TermsOfService = () => {
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                     </div>
-                    Contact Information
+                    Contact Me
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    For questions about these Terms of Service, please contact us at{" "}
+                    For questions about these Terms of Service, please contact me at{" "}
                     <a href="mailto:hello@danadelola.com" className="text-primary hover:text-primary/80 font-medium">
                       hello@danadelola.com
                     </a>

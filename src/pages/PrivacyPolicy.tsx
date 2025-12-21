@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
               </h1>
               <div className="w-24 h-1 bg-primary mx-auto mb-8"></div>
               <p className="text-lg text-foreground/80 max-w-2xl mx-auto">
-                Your privacy is important to us. Learn how we collect, use, and protect your information.
+                Your privacy is important to me. Learn how I collect, use, and protect your information.
               </p>
             </div>
 
@@ -36,11 +36,11 @@ const PrivacyPolicy = () => {
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                     </div>
-                    Information We Collect
+                    Information I Collect
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    We collect information you provide directly to us, such as when you subscribe to our email list,
-                    fill out contact forms, or engage with our services. This may include your name, email address,
+                    I collect information you provide directly to me, such as when you subscribe to my email list,
+                    fill out contact forms, or engage with my services. This may include your name, email address,
                     phone number, and business information.
                   </p>
                 </section>
@@ -50,15 +50,15 @@ const PrivacyPolicy = () => {
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                     </div>
-                    How We Use Your Information
+                    How I Use Your Information
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11 mb-4">
-                    We use the information we collect to:
+                    I use the information I collect to:
                   </p>
                   <ul className="list-none pl-11 space-y-2">
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <span className="text-foreground">Provide and improve our digital marketing services</span>
+                      <span className="text-foreground">Provide and improve my digital marketing services</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
@@ -70,7 +70,7 @@ const PrivacyPolicy = () => {
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                      <span className="text-foreground">Analyze website usage and improve user experience</span>
+                      <span className="text-foreground">Analyze my website usage and improve user experience</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
@@ -87,9 +87,9 @@ const PrivacyPolicy = () => {
                     Information Sharing
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    We do not sell, trade, or otherwise transfer your personal information to third parties without
-                    your consent, except as described in this policy. We may share information with service providers
-                    who assist us in operating our website and conducting our business.
+                    I do not sell, trade, or otherwise transfer your personal information to third parties without
+                    your consent, except as described in this policy. I may share information with service providers
+                    who assist me in operating my website and conducting my business.
                   </p>
                 </section>
 
@@ -101,7 +101,7 @@ const PrivacyPolicy = () => {
                     Data Security
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    We implement appropriate security measures to protect your personal information against unauthorized
+                    I implement appropriate security measures to protect your personal information against unauthorized
                     access, alteration, disclosure, or destruction. However, no method of transmission over the internet
                     is 100% secure.
                   </p>
@@ -115,7 +115,7 @@ const PrivacyPolicy = () => {
                     Cookies
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    Our website uses cookies to enhance your browsing experience, analyze site traffic, and personalize
+                    My website uses cookies to enhance your browsing experience, analyze site traffic, and personalize
                     content. You can control cookie settings through your browser preferences.
                   </p>
                 </section>
@@ -129,7 +129,7 @@ const PrivacyPolicy = () => {
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
                     You have the right to access, update, or delete your personal information. You may also opt out
-                    of marketing communications at any time. Contact us using the information provided in the footer
+                    of marketing communications at any time. Contact me using the information provided in the footer
                     to exercise these rights.
                   </p>
                 </section>
@@ -142,7 +142,7 @@ const PrivacyPolicy = () => {
                     Changes to This Policy
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    We may update this Privacy Policy from time to time. We will notify you of any changes by posting
+                    I may update this Privacy Policy from time to time. I will notify you of any changes by posting
                     the new policy on this page and updating the "Last updated" date.
                   </p>
                 </section>
@@ -152,10 +152,10 @@ const PrivacyPolicy = () => {
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                       <div className="w-3 h-3 bg-primary rounded-full"></div>
                     </div>
-                    Contact Us
+                    Contact Me
                   </h2>
                   <p className="text-foreground leading-relaxed pl-11">
-                    If you have any questions about this Privacy Policy, please contact us at{" "}
+                    If you have any questions about this Privacy Policy, please contact me at{" "}
                     <a href="mailto:hello@danadelola.com" className="text-primary hover:text-primary/80 font-medium">
                       hello@danadelola.com
                     </a>
