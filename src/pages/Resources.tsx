@@ -140,11 +140,11 @@ const Resources = () => {
         <div className="container-wide mx-auto px-6 md:px-8 relative z-10">
           <div className="max-w-3xl">
             <p className="text-primary font-medium mb-4 animate-fade-up">Resources</p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground leading-tight mb-6 animate-fade-up animation-delay-100">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground leading-tight mb-6 animate-fade-up animation-delay-100">
               Tools & Templates to
               <span className="text-primary block">Accelerate Your Growth</span>
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed animate-fade-up animation-delay-200">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed animate-fade-up animation-delay-200">
               Free and premium resources I've created to help you implement marketing strategies faster 
               and more effectively. The same tools I use with my clients.
             </p>
@@ -160,30 +160,30 @@ const Resources = () => {
             <h2 className="text-3xl font-heading font-bold text-foreground">Free Resources</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
             {freeResources.map((resource, index) => (
               <div
                 key={index}
-                className="p-8 bg-background border border-border rounded-xl hover:border-primary/50 transition-all duration-300"
+                className="p-6 md:p-8 bg-background border border-border rounded-xl hover:border-primary/50 transition-all duration-300"
               >
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
                     <resource.icon size={24} className="text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-heading font-bold text-foreground mb-2">
+                    <h3 className="text-lg md:text-xl font-heading font-bold text-foreground mb-2">
                       {resource.title}
                     </h3>
-                    <p className="text-muted-foreground">{resource.description}</p>
+                    <p className="text-sm md:text-base text-muted-foreground">{resource.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span>{resource.format}</span>
                     <span>•</span>
                     <span>{resource.downloads} downloads</span>
                   </div>
-                  <Button variant="outline-dark" size="sm">
+                  <Button variant="outline-dark" size="default" className="w-full sm:w-auto">
                     <Download size={16} className="mr-2" />
                     Download Free
                   </Button>
@@ -214,11 +214,11 @@ const Resources = () => {
             <h2 className="text-3xl font-heading font-bold text-foreground">Premium Resources</h2>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             {premiumResources.map((resource, index) => (
               <div
                 key={index}
-                className="p-8 bg-card border border-border rounded-xl flex flex-col"
+                className="p-6 md:p-8 bg-card border border-border rounded-xl flex flex-col"
               >
                 <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                   <resource.icon size={28} className="text-primary" />
@@ -242,7 +242,7 @@ const Resources = () => {
 
                 <div className="border-t border-border pt-6">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-heading font-bold text-foreground">
+                    <span className="text-xl md:text-2xl font-heading font-bold text-foreground">
                       {resource.price}
                     </span>
                     <span className="text-muted-foreground text-sm">One-time payment</span>
@@ -275,7 +275,7 @@ const Resources = () => {
               <a
                 key={index}
                 href={tool.link}
-                className="p-6 bg-background border border-border rounded-xl hover:border-primary/50 transition-all duration-300 group"
+                className="p-4 md:p-6 bg-background border border-border rounded-xl hover:border-primary/50 transition-all duration-300 group"
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
@@ -296,7 +296,7 @@ const Resources = () => {
       {/* CTA */}
       <section className="section-padding">
         <div className="container-narrow mx-auto">
-          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/20 rounded-2xl p-12 text-center">
+          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border border-primary/20 rounded-2xl p-8 md:p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-6">
               Want Personalized Guidance?
             </h2>
@@ -307,7 +307,7 @@ const Resources = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" size="xl" asChild>
                 <Link to="/training">
-                  Explore Training Programs
+                   Training Programs
                   <ArrowRight className="ml-2" size={20} />
                 </Link>
               </Button>

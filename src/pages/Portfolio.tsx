@@ -35,6 +35,7 @@ const Portfolio = () => {
     "Brand Design",
     "Web Designs",
     "Video Creation/editing",
+    "Influencer",
     "AdvertIsing",
   ];
 
