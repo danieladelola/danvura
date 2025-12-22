@@ -27,6 +27,7 @@ import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import AdminPortfolioNew from "./pages/admin/AdminPortfolioNew";
 import AdminPortfolioEdit from "./pages/admin/AdminPortfolioEdit";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSubscribers from "./pages/admin/AdminSubscribers";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/admin/portfolio" element={<AdminPortfolio />} />
               <Route path="/admin/portfolio/new" element={<AdminPortfolioNew />} />
               <Route path="/admin/portfolio/edit/:id" element={<AdminPortfolioEdit />} />
+              <Route path="/admin/subscribers" element={<AdminSubscribers />} />
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
               
               <Route path="*" element={<NotFound />} />

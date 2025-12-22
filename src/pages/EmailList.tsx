@@ -4,21 +4,59 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscribers } from "@/hooks/useSubscribers";
 import { CheckCircle, Mail, Zap, BookOpen, Gift, Users, ArrowRight } from "lucide-react";
 
 const EmailList = () => {
   const { toast } = useToast();
+  const { addSubscriber } = useSubscribers();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const source = urlParams.get('source') === 'about' ? 'about' : 'email-list';
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Welcome to the list! 🎉",
-      description: "Check your inbox for a confirmation email and your free guide.",
-    });
-    setEmail("");
-    setFirstName("");
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast({
+          title: "Invalid email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      addSubscriber({
+        email: email.toLowerCase().trim(),
+        firstName: firstName.trim() || undefined,
+        source: source as 'email-list' | 'about',
+        status: 'active',
+      });
+
+      toast({
+        title: "Welcome to the list! 🎉",
+        description: "Check your inbox for a confirmation email and your free guide.",
+      });
+      setEmail("");
+      setFirstName("");
+    } catch (error) {
+      toast({
+        title: "Subscription failed",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const benefits = [
@@ -120,8 +158,8 @@ const EmailList = () => {
                   required
                   className="h-14 text-lg bg-card border-border"
                 />
-                <Button type="submit" variant="hero" size="xl" className="w-full">
-                  Join the List & Get Free Playbook
+                <Button type="submit" variant="hero" size="xl" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Subscribing..." : "Join the List & Get Free Playbook"}
                   <ArrowRight className="ml-2" size={20} />
                 </Button>
               </div>
@@ -246,8 +284,8 @@ const EmailList = () => {
                   required
                   className="h-14 flex-1 bg-card border-border"
                 />
-                <Button type="submit" variant="hero" size="lg">
-                  Subscribe
+                <Button type="submit" variant="hero" size="lg" disabled={isSubmitting}>
+                  {isSubmitting ? "Subscribing..." : "Subscribe"}
                   <ArrowRight className="ml-2" size={18} />
                 </Button>
               </div>

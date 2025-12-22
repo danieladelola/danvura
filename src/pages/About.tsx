@@ -253,7 +253,7 @@ const About = () => {
               </Link>
             </Button>
             <Button variant="outline-dark" size="xl" asChild>
-              <Link to="/email-list">Join My Email List</Link>
+              <Link to="/email-list?source=about">Join My Email List</Link>
             </Button>
           </div>
         </div>

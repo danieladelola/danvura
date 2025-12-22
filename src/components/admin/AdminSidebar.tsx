@@ -8,7 +8,8 @@ import {
   Settings,
   Image,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Mail
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ import { useState } from 'react';
 const AdminSidebar = () => {
   const location = useLocation();
   const { logout } = useAdminAuth();
-  const [expandedSections, setExpandedSections] = useState<string[]>(['blog']);
+  const [expandedSections, setExpandedSections] = useState<string[]>(['blog', 'newsletter']);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -37,6 +38,14 @@ const AdminSidebar = () => {
       submenu: [
         { icon: Image, label: 'All Portfolio', path: '/admin/portfolio' },
         { icon: PlusCircle, label: 'Add Portfolio', path: '/admin/portfolio/new' },
+      ]
+    },
+    {
+      icon: Mail,
+      label: 'Newsletter',
+      path: '/admin/newsletter',
+      submenu: [
+        { icon: Mail, label: 'All Subscribers', path: '/admin/subscribers' },
       ]
     },
     { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
