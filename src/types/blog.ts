@@ -38,24 +38,3 @@ export interface AnalyticsData {
   topPages: { page: string; views: number }[];
   visitsByDay: { date: string; visits: number }[];
 }
-  id: string;
-  title: string;
-  category: PortfolioCategory;
-  mediaUrl: string;
-  mediaType: 'image' | 'video';
-  status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type PortfolioCategory = 'Brand Design' | 'Web Designs' | 'Influencer' | 'AdvertIsing' | 'Video Creation/editing';
-
-export interface AnalyticsData {
-  totalVisits: number;
-  totalPageViews: number;
-  uniqueVisitors: number;
-  avgSessionDuration: string;
-  bounceRate: string;
-  topPages: { page: string; views: number }[];
-  visitsByDay: { date: string; visits: number }[];
-}
