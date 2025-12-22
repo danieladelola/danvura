@@ -6,7 +6,10 @@ import { Label } from '@/components/ui/label';
 import { PortfolioItem, PortfolioCategory } from '@/types/blog';
 import { usePortfolioItems } from '@/hooks/usePortfolioItems';
 import { useToast } from '@/hooks/use-toast';
+import { useMedia } from '@/hooks/useMedia';
+import { MediaItem } from '@/types/media';
 import { Save, Eye, ArrowLeft, X, Upload, Image, Video } from 'lucide-react';
+import MediaPicker from './MediaPicker';
 
 interface PortfolioEditorProps {
   itemId?: string;
@@ -15,6 +18,7 @@ interface PortfolioEditorProps {
 const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
   const navigate = useNavigate();
   const { items, createItem, updateItem } = usePortfolioItems();
+  const { getMediaById, addUsage, removeUsage } = useMedia();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -25,8 +29,7 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
     status: 'draft' as 'draft' | 'published',
   });
 
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
 
   useEffect(() => {
     if (itemId) {
@@ -39,10 +42,16 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
           mediaType: item.mediaType,
           status: item.status,
         });
-        setMediaPreview(item.mediaUrl);
+        // If there's media, try to find it in media library
+        if (item.mediaUrl) {
+          const mediaItem = getMediaById(item.mediaUrl);
+          if (mediaItem) {
+            setSelectedMedia(mediaItem);
+          }
+        }
       }
     }
-  }, [itemId, items]);
+  }, [itemId, items, getMediaById]);
 
   const categories: PortfolioCategory[] = [
     'Brand Design',
@@ -59,65 +68,32 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
       mediaType: category === 'Video Creation/editing' ? 'video' : 'image',
       mediaUrl: '',
     }));
-    setMediaPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    setSelectedMedia(null);
   };
 
-  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const isVideo = formData.mediaType === 'video';
-      const allowedTypes = isVideo
-        ? ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm']
-        : ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: 'Invalid file type',
-          description: isVideo
-            ? 'Please upload a MP4, AVI, MOV, WMV, or WebM video.'
-            : 'Please upload a JPG, PNG, GIF, or WebP image.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Validate file size (10MB max for videos, 5MB for images)
-      const maxSize = isVideo ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        toast({
-          title: 'File too large',
-          description: `Please upload a ${isVideo ? 'video' : 'image'} smaller than ${isVideo ? '10MB' : '5MB'}.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setMediaPreview(result);
-        setFormData(prev => ({ ...prev, mediaUrl: result }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleMediaSelect = (media: MediaItem) => {
+    setSelectedMedia(media);
+    setFormData(prev => ({
+      ...prev,
+      mediaUrl: media.url,
+      mediaType: media.type
+    }));
   };
 
   const removeMedia = () => {
-    setMediaPreview(null);
-    setFormData(prev => ({ ...prev, mediaUrl: '' }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    // Remove usage from previous media if it exists
+    if (selectedMedia) {
+      removeUsage(selectedMedia.id, 'portfolios', itemId || 'new');
     }
+    setSelectedMedia(null);
+    setFormData(prev => ({ ...prev, mediaUrl: '' }));
   };
 
   const handleSubmit = (status: 'draft' | 'published') => {
     if (!formData.title || !formData.category || !formData.mediaUrl) {
       toast({
         title: 'Error',
-        description: 'Please fill in the title, select a category, and upload media.',
+        description: 'Please fill in the title, select a category, and select media.',
         variant: 'destructive',
       });
       return;
@@ -132,7 +108,11 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
         description: 'Your portfolio item has been updated successfully.',
       });
     } else {
-      createItem(itemData);
+      const newItem = createItem(itemData);
+      // Add media usage for new portfolio item
+      if (selectedMedia) {
+        addUsage(selectedMedia.id, 'portfolios', newItem.id);
+      }
       toast({
         title: 'Portfolio Item Created',
         description: 'Your portfolio item has been created successfully.',
@@ -198,57 +178,52 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
           </div>
         </div>
 
-        {/* Media Upload */}
+        {/* Media Selection */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           <h2 className="text-lg font-heading font-bold text-foreground">
-            {formData.mediaType === 'video' ? 'Video' : 'Image'} Upload
+            {formData.mediaType === 'video' ? 'Video' : 'Image'} Selection
           </h2>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="media">Upload {formData.mediaType === 'video' ? 'Video' : 'Image'}</Label>
+              <Label>Select {formData.mediaType === 'video' ? 'Video' : 'Image'}</Label>
               <div className="mt-1">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  id="media"
-                  accept={formData.mediaType === 'video'
-                    ? 'video/mp4,video/avi,video/mov,video/wmv,video/webm'
-                    : 'image/jpeg,image/jpg,image/png,image/gif,image/webp'
+                <MediaPicker
+                  selectedMedia={selectedMedia}
+                  onSelect={handleMediaSelect}
+                  type={formData.mediaType}
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 transition-colors"
+                      disabled={!formData.category}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        {formData.mediaType === 'video' ? (
+                          <Video size={24} className="text-muted-foreground" />
+                        ) : (
+                          <Image size={24} className="text-muted-foreground" />
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {formData.category
+                            ? `${selectedMedia ? 'Change' : 'Select'} ${formData.mediaType} from library`
+                            : 'Select a category first'
+                          }
+                        </span>
+                      </div>
+                    </Button>
                   }
-                  onChange={handleMediaChange}
-                  className="hidden"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 transition-colors"
-                  disabled={!formData.category}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    {formData.mediaType === 'video' ? (
-                      <Video size={24} className="text-muted-foreground" />
-                    ) : (
-                      <Image size={24} className="text-muted-foreground" />
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {formData.category
-                        ? `Click to upload ${formData.mediaType} (${formData.mediaType === 'video' ? 'MP4, AVI, MOV, WMV, WebM - Max 10MB' : 'JPG, PNG, GIF, WebP - Max 5MB'})`
-                        : 'Select a category first'
-                      }
-                    </span>
-                  </div>
-                </Button>
               </div>
             </div>
 
-            {mediaPreview && (
+            {selectedMedia && (
               <div className="relative">
-                {formData.mediaType === 'video' ? (
+                {selectedMedia.type === 'video' ? (
                   <div className="aspect-[9/16] w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
                     <video
-                      src={mediaPreview}
+                      src={selectedMedia.url}
                       controls
                       className="w-full h-full object-cover"
                     />
@@ -256,8 +231,8 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
                 ) : (
                   <div className="aspect-video w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
                     <img
-                      src={mediaPreview}
-                      alt="Media preview"
+                      src={selectedMedia.url}
+                      alt={selectedMedia.alt || 'Media preview'}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -271,6 +246,11 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
                 >
                   <X size={16} />
                 </Button>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  <p><strong>File:</strong> {selectedMedia.originalName}</p>
+                  {selectedMedia.alt && <p><strong>Alt:</strong> {selectedMedia.alt}</p>}
+                  {selectedMedia.caption && <p><strong>Caption:</strong> {selectedMedia.caption}</p>}
+                </div>
               </div>
             )}
           </div>

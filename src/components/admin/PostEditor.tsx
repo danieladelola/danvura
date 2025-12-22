@@ -7,8 +7,11 @@ import { Label } from '@/components/ui/label';
 import { BlogPost } from '@/types/blog';
 import { useBlogPosts } from '@/hooks/useBlogPosts';
 import { useToast } from '@/hooks/use-toast';
+import { useMedia } from '@/hooks/useMedia';
+import { MediaItem } from '@/types/media';
 import { Save, Eye, ArrowLeft, X, Upload, Image } from 'lucide-react';
 import { Editor } from '@tinymce/tinymce-react';
+import MediaPicker from './MediaPicker';
 
 interface PostEditorProps {
   postId?: string;
@@ -17,6 +20,7 @@ interface PostEditorProps {
 const PostEditor = ({ postId }: PostEditorProps) => {
   const navigate = useNavigate();
   const { posts, createPost, updatePost } = useBlogPosts();
+  const { getMediaById, addUsage, removeUsage } = useMedia();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -34,8 +38,7 @@ const PostEditor = ({ postId }: PostEditorProps) => {
   });
   
   const [keywordInput, setKeywordInput] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const editorRef = useRef<any>(null);
 
   useEffect(() => {
@@ -55,10 +58,16 @@ const PostEditor = ({ postId }: PostEditorProps) => {
           readTime: post.readTime,
           featuredImage: post.featuredImage,
         });
-        setImagePreview(post.featuredImage);
+        // If there's a featured image, try to find it in media library
+        if (post.featuredImage) {
+          const mediaItem = getMediaById(post.featuredImage);
+          if (mediaItem) {
+            setSelectedMedia(mediaItem);
+          }
+        }
       }
     }
-  }, [postId, posts]);
+  }, [postId, posts, getMediaById]);
 
   const generateSlug = (title: string) => {
     return title
@@ -94,46 +103,18 @@ const PostEditor = ({ postId }: PostEditorProps) => {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please upload a JPG, PNG, or GIF image.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
-          description: 'Please upload an image smaller than 5MB.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setImagePreview(result);
-        setFormData(prev => ({ ...prev, featuredImage: result }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleMediaSelect = (media: MediaItem) => {
+    setSelectedMedia(media);
+    setFormData(prev => ({ ...prev, featuredImage: media.url }));
   };
 
   const removeImage = () => {
-    setImagePreview(null);
-    setFormData(prev => ({ ...prev, featuredImage: null }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    // Remove usage from previous media if it exists
+    if (selectedMedia) {
+      removeUsage(selectedMedia.id, 'posts', postId || 'new');
     }
+    setSelectedMedia(null);
+    setFormData(prev => ({ ...prev, featuredImage: null }));
   };
 
   const handleSubmit = (status: 'draft' | 'published') => {
@@ -155,7 +136,11 @@ const PostEditor = ({ postId }: PostEditorProps) => {
         description: 'Your post has been updated successfully.',
       });
     } else {
-      createPost(postData);
+      const newPost = createPost(postData);
+      // Add media usage for new post
+      if (selectedMedia) {
+        addUsage(selectedMedia.id, 'posts', newPost.id);
+      }
       toast({
         title: 'Post Created',
         description: 'Your post has been created successfully.',
@@ -274,38 +259,36 @@ const PostEditor = ({ postId }: PostEditorProps) => {
           
           <div className="space-y-4">
             <div>
-              <Label htmlFor="featuredImage">Upload Featured Image</Label>
+              <Label>Featured Image</Label>
               <div className="mt-1">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  id="featuredImage"
-                  accept="image/jpeg,image/jpg,image/png,image/gif"
-                  onChange={handleImageChange}
-                  className="hidden"
+                <MediaPicker
+                  selectedMedia={selectedMedia}
+                  onSelect={handleMediaSelect}
+                  type="image"
+                  trigger={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <Image size={24} className="text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {selectedMedia ? 'Change Featured Image' : 'Select Featured Image'}
+                        </span>
+                      </div>
+                    </Button>
+                  }
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 border-2 border-dashed border-border hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <Upload size={24} className="text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Click to upload image (JPG, PNG, GIF - Max 5MB)
-                    </span>
-                  </div>
-                </Button>
               </div>
             </div>
 
-            {imagePreview && (
+            {selectedMedia && (
               <div className="relative">
                 <div className="aspect-video w-full max-w-md mx-auto bg-muted rounded-lg overflow-hidden">
                   <img
-                    src={imagePreview}
-                    alt="Featured image preview"
+                    src={selectedMedia.url}
+                    alt={selectedMedia.alt || 'Featured image'}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -318,6 +301,11 @@ const PostEditor = ({ postId }: PostEditorProps) => {
                 >
                   <X size={16} />
                 </Button>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  <p><strong>File:</strong> {selectedMedia.originalName}</p>
+                  {selectedMedia.alt && <p><strong>Alt:</strong> {selectedMedia.alt}</p>}
+                  {selectedMedia.caption && <p><strong>Caption:</strong> {selectedMedia.caption}</p>}
+                </div>
               </div>
             )}
           </div>

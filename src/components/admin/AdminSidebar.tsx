@@ -9,7 +9,8 @@ import {
   Image,
   ChevronDown,
   ChevronRight,
-  Mail
+  Mail,
+  FolderOpen
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,11 @@ const AdminSidebar = () => {
         { icon: Image, label: 'All Portfolio', path: '/admin/portfolio' },
         { icon: PlusCircle, label: 'Add Portfolio', path: '/admin/portfolio/new' },
       ]
+    },
+    {
+      icon: FolderOpen,
+      label: 'Media Library',
+      path: '/admin/media',
     },
     {
       icon: Mail,
