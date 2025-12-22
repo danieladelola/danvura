@@ -194,7 +194,7 @@ const Training = () => {
       </section>
 
       {/* Programs */}
-      <section className="section-padding">
+      <section id="programs" className="section-padding">
         <div className="container-wide mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-6">
@@ -371,7 +371,7 @@ const Training = () => {
             Join 1,000+ students who have upgraded their marketing skills and grown their businesses.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="xl">
+            <Button variant="hero" size="xl" onClick={() => document.getElementById('programs')?.scrollIntoView({ behavior: 'smooth' })}>
               Browse Programs
               <ArrowRight className="ml-2" size={20} />
             </Button>

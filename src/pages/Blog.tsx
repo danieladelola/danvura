@@ -51,9 +51,9 @@ const Blog = () => {
       </section>
 
       {/* Categories */}
-      <section className="py-8 border-y border-border overflow-x-auto">
+      <section className="py-8 border-y border-border">
         <div className="container-wide mx-auto px-6 md:px-8">
-          <div className="flex gap-4 min-w-max">
+          <div className="flex gap-4 flex-wrap">
             {categories.map((category) => (
               <button
                 key={category}
