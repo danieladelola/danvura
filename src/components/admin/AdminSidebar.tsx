@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Mail,
   FolderOpen,
-  CheckSquare
+  CheckSquare,
+  Wallet
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,11 @@ const AdminSidebar = () => {
       icon: CheckSquare,
       label: 'Tasks & Reminders',
       path: '/admin/tasks',
+    },
+    {
+      icon: Wallet,
+      label: 'Finance',
+      path: '/admin/finance',
     },
     {
       icon: Mail,
