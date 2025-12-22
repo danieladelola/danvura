@@ -1,10 +1,22 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { NewsletterPopup } from "@/components/NewsletterPopup";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, TrendingUp, Users, Target, Award, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const Index = () => {
+  const [showNewsletter, setShowNewsletter] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowNewsletter(true);
+    }, 5000); // Show after 5 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const stats = [
     { number: "6+", label: "Years Experience" },
     { number: "100+", label: "Clients Served" },
@@ -240,6 +252,11 @@ const Index = () => {
       </section>
 
       <Footer />
+
+      <NewsletterPopup
+        isOpen={showNewsletter}
+        onClose={() => setShowNewsletter(false)}
+      />
     </main>
   );
 };
