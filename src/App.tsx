@@ -30,6 +30,7 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import AdminMediaLibrary from "./pages/admin/AdminMediaLibrary";
 import AdminTasks from "./pages/admin/AdminTasks";
+import AdminFinance from "./pages/admin/AdminFinance";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
               <Route path="/admin/media" element={<AdminMediaLibrary />} />
               <Route path="/admin/tasks" element={<AdminTasks />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
