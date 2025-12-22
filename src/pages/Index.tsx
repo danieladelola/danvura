@@ -10,11 +10,44 @@ const Index = () => {
   const [showNewsletter, setShowNewsletter] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowNewsletter(true);
-    }, 5000); // Show after 5 seconds
+    // Check if user should see newsletter popup
+    const shouldShowNewsletter = () => {
+      const visitorId = localStorage.getItem('visitor_id');
+      const lastShown = localStorage.getItem('newsletter_last_shown');
+      const now = Date.now();
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
 
-    return () => clearTimeout(timer);
+      // If no visitor ID, create one and show popup
+      if (!visitorId) {
+        const newVisitorId = 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + now;
+        localStorage.setItem('visitor_id', newVisitorId);
+        return true;
+      }
+
+      // If never shown before, show it
+      if (!lastShown) {
+        return true;
+      }
+
+      // Check if 30 days have passed since last shown
+      const lastShownTime = parseInt(lastShown);
+      if (now - lastShownTime > thirtyDays) {
+        return true;
+      }
+
+      return false;
+    };
+
+    // Only show popup if conditions are met
+    if (shouldShowNewsletter()) {
+      const timer = setTimeout(() => {
+        setShowNewsletter(true);
+        // Record when popup was shown
+        localStorage.setItem('newsletter_last_shown', Date.now().toString());
+      }, 5000); // Show after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const stats = [
