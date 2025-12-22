@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Mail, User, CheckCircle } from 'lucide-react';
+import { Mail, User, CheckCircle } from 'lucide-react';
 import { useSubscribers } from '@/hooks/useSubscribers';
 import { useToast } from '@/hooks/use-toast';
 
@@ -87,74 +87,67 @@ export const NewsletterPopup = ({ isOpen, onClose }: NewsletterPopupProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md w-[95vw] max-w-[400px] mx-4 animate-in fade-in-0 zoom-in-95 duration-300 p-6">
-        <DialogHeader className="relative">
-          <button
-            onClick={onClose}
-            className="absolute -right-2 -top-2 z-10 w-8 h-8 bg-background border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm"
-            aria-label="Close newsletter popup"
-          >
-            <X size={16} />
-          </button>
-          <DialogTitle className="text-center text-xl sm:text-2xl font-heading font-bold text-foreground pr-8">
+      <DialogContent className="sm:max-w-md w-[90vw] max-w-[400px] mx-auto animate-in fade-in-0 zoom-in-95 duration-300 p-4 sm:p-6">
+        <DialogHeader>
+          <DialogTitle className="text-center text-lg sm:text-xl md:text-2xl font-heading font-bold text-foreground">
             Subscribe to Our Newsletter
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 sm:space-y-6">
-          <p className="text-center text-muted-foreground text-sm sm:text-base">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
+          <p className="text-center text-muted-foreground text-sm sm:text-base px-2">
             Get marketing tips and offers straight to your inbox.
           </p>
 
           {submitStatus === 'success' && (
-            <div className="flex items-center justify-center gap-2 text-green-600 py-4">
-              <CheckCircle size={20} />
-              <span className="font-medium">Successfully subscribed!</span>
+            <div className="flex items-center justify-center gap-2 text-green-600 py-3 sm:py-4">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-medium text-sm sm:text-base">Successfully subscribed!</span>
             </div>
           )}
 
           {submitStatus === 'duplicate' && (
-            <div className="flex items-center justify-center gap-2 text-blue-600 py-4">
-              <CheckCircle size={20} />
-              <span className="font-medium">Already subscribed!</span>
+            <div className="flex items-center justify-center gap-2 text-blue-600 py-3 sm:py-4">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-medium text-sm sm:text-base">Already subscribed!</span>
             </div>
           )}
 
           {submitStatus === 'idle' && (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-3">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                   <Input
                     {...register('firstName')}
                     type="text"
                     placeholder="Enter your first name"
-                    className="pl-10 h-12"
+                    className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     disabled={isSubmitting}
                   />
                 </div>
                 {errors.firstName && (
-                  <p className="text-sm text-destructive">{errors.firstName.message}</p>
+                  <p className="text-xs sm:text-sm text-destructive px-1">{errors.firstName.message}</p>
                 )}
 
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                   <Input
                     {...register('email')}
                     type="email"
                     placeholder="Enter your email address"
-                    className="pl-10 h-12"
+                    className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm sm:text-base"
                     disabled={isSubmitting}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                  <p className="text-xs sm:text-sm text-destructive px-1">{errors.email.message}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-medium"
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Subscribing...' : 'Subscribe'}
