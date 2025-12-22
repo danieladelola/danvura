@@ -10,7 +10,8 @@ import {
   ChevronDown,
   ChevronRight,
   Mail,
-  FolderOpen
+  FolderOpen,
+  CheckSquare
 } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,11 @@ const AdminSidebar = () => {
       icon: FolderOpen,
       label: 'Media Library',
       path: '/admin/media',
+    },
+    {
+      icon: CheckSquare,
+      label: 'Tasks & Reminders',
+      path: '/admin/tasks',
     },
     {
       icon: Mail,

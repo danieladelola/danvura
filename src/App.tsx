@@ -29,6 +29,7 @@ import AdminPortfolioEdit from "./pages/admin/AdminPortfolioEdit";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import AdminMediaLibrary from "./pages/admin/AdminMediaLibrary";
+import AdminTasks from "./pages/admin/AdminTasks";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
               <Route path="/admin/subscribers" element={<AdminSubscribers />} />
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
               <Route path="/admin/media" element={<AdminMediaLibrary />} />
+              <Route path="/admin/tasks" element={<AdminTasks />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

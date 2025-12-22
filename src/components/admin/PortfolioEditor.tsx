@@ -99,7 +99,11 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
       return;
     }
 
-    const itemData = { ...formData, status };
+    const itemData = { 
+      ...formData, 
+      status,
+      category: formData.category as PortfolioCategory,
+    };
 
     if (itemId) {
       updateItem(itemId, itemData);
