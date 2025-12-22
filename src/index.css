@@ -62,9 +62,67 @@
     --sidebar-border: 0 0% 18%;
     --sidebar-ring: 0 72% 50%;
   }
-}
 
-@layer base {
+  .light {
+    /* Light Theme - White background with black accents */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Black - Primary Brand */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Light Secondary */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
+
+    --radius: 0.5rem;
+
+    /* Custom Brand Tokens */
+    --brand-red: 0 0% 0%;
+    --brand-red-light: 0 0% 20%;
+    --brand-red-dark: 0 0% 0%;
+    --brand-black: 0 0% 100%;
+    --brand-white: 0 0% 0%;
+    --brand-gray: 0 0% 45%;
+    --brand-gray-light: 0 0% 80%;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.1);
+    --shadow-medium: 0 8px 30px -6px hsl(0 0% 0% / 0.15);
+    --shadow-red: 0 8px 30px -6px hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 40px hsl(0 0% 0% / 0.1);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 0 0% 0%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 0%;
+  }
+
   * {
     @apply border-border;
   }
