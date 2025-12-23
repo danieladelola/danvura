@@ -1,9 +1,10 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePortfolioItems } from "@/hooks/usePortfolioItems";
 import { PortfolioCategory } from "@/types/blog";
 
@@ -12,9 +13,18 @@ type PortfolioFilter = PortfolioCategory | 'All';
 const Portfolio = () => {
   const { getItemsByCategory } = usePortfolioItems();
   const [selectedIndustry, setSelectedIndustry] = useState<PortfolioFilter>("All");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const media = getItemsByCategory(selectedIndustry);
+
+  // Preload images for instant display
+  useEffect(() => {
+    media.forEach((item) => {
+      if (item.mediaType === 'image') {
+        const img = new Image();
+        img.src = item.mediaUrl;
+      }
+    });
+  }, [media]);
 
   const industries: PortfolioFilter[] = [
     "All",
@@ -79,7 +89,19 @@ const Portfolio = () => {
                 className="group bg-card border border-border overflow-hidden hover:border-primary/50 transition-all duration-300"
               >
                 {item.mediaType === 'image' ? (
-                  <img src={item.mediaUrl} alt={item.title} className="w-full h-auto object-contain cursor-pointer" onClick={() => setSelectedImage(item.mediaUrl)} />
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <img src={item.mediaUrl} alt={item.title} className="w-full h-auto object-contain cursor-pointer hover:scale-105 transition-transform duration-300" loading="eager" />
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+                      <img 
+                        src={item.mediaUrl} 
+                        alt={item.title} 
+                        className="w-full h-full object-contain max-h-[85vh]" 
+                        loading="eager"
+                      />
+                    </DialogContent>
+                  </Dialog>
                 ) : (
                   <video src={item.mediaUrl} className="w-full aspect-[9/16] object-cover" controls />
                 )}
@@ -106,6 +128,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/11fab788be9d356bd8f8b622c54006eb.jpg" 
                 alt="Brand Logo 1" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -113,6 +136,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/EEDSL-SP-Logo-white-scaled.jpeg" 
                 alt="Brand Logo 2" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -120,6 +144,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/afrisafe-logo-2025-3.png" 
                 alt="Brand Logo 3" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -127,6 +152,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/guddx0v0_400x400.jpg" 
                 alt="Brand Logo 4" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -134,6 +160,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/1630478076101.jpg" 
                 alt="Brand Logo 5" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -141,6 +168,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/images (1).jpg" 
                 alt="Brand Logo 6" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -148,6 +176,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/images.jpg" 
                 alt="Brand Logo 7" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -155,6 +184,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/images.png" 
                 alt="Brand Logo 8" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -162,6 +192,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/green.png" 
                 alt="Brand Logo 9" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -169,6 +200,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/launch_image.jpeg" 
                 alt="Brand Logo 10" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -176,6 +208,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/seplat.jpg" 
                 alt="Brand Logo 11" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -183,6 +216,7 @@ const Portfolio = () => {
                 src="/media/brandlogo/vura.jpg" 
                 alt="Brand Logo 12" 
                 className="w-24 h-24 object-contain rounded-full hover:scale-105 transition-transform" 
+                loading="eager"
               />
             </div>
           </div>
@@ -213,18 +247,6 @@ const Portfolio = () => {
       </section>
 
       <Footer />
-
-      {selectedImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setSelectedImage(null)}>
-          <img src={selectedImage} alt="" className="max-w-[90%] max-h-[90%] object-contain" />
-          <button 
-            className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 transition-colors" 
-            onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
-          >
-            ×
-          </button>
-        </div>
-      )}
     </main>
   );
 };

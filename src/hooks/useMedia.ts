@@ -51,72 +51,92 @@ export const useMedia = () => {
       file: File;
       metadata?: { alt?: string; caption?: string; tags?: string[] };
     }): Promise<MediaItem> => {
-      return new Promise((resolve, reject) => {
-        const id = crypto.randomUUID();
-        const filename = `${id}-${file.name}`;
+      const id = crypto.randomUUID();
+      const filename = `${id}-${file.name}`;
 
-        // Convert file to data URL for storage
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-          try {
-            const dataUrl = event.target?.result as string;
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filename, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-            const { data: userData } = await supabase.auth.getUser();
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
-            const { data, error } = await supabase
-              .from('media_items')
-              .insert({
-                filename,
-                original_name: file.name,
-                url: dataUrl,
-                type: file.type.startsWith('image/') ? 'image' : 'video',
-                mime_type: file.type,
-                size: file.size,
-                width: 1920, // placeholder
-                height: 1080, // placeholder
-                alt: metadata?.alt,
-                caption: metadata?.caption,
-                tags: metadata?.tags || [],
-                uploaded_by: userData?.user?.id,
-              })
-              .select()
-              .single();
+      console.log('Upload successful:', uploadData);
 
-            if (error) throw error;
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(filename);
 
-            const newItem: MediaItem = {
-              id: data.id,
-              filename: data.filename,
-              originalName: data.original_name,
-              url: data.url,
-              type: data.type as 'image' | 'video',
-              mimeType: data.mime_type,
-              size: data.size,
-              width: data.width || undefined,
-              height: data.height || undefined,
-              uploadedAt: new Date(data.uploaded_at),
-              uploadedBy: data.uploaded_by || 'admin',
-              alt: data.alt || undefined,
-              caption: data.caption || undefined,
-              tags: data.tags || [],
-              usage: {
-                posts: [],
-                portfolios: [],
-              },
-            };
+      console.log('Uploaded file URL:', urlData.publicUrl);
 
-            resolve(newItem);
-          } catch (err) {
-            console.error('Error uploading media:', err);
-            reject(err);
-          }
-        };
-        reader.onerror = (error) => {
-          console.error('FileReader error:', error);
-          reject(error);
-        };
-        reader.readAsDataURL(file);
-      });
+      // Get image dimensions if it's an image
+      let width: number | undefined;
+      let height: number | undefined;
+
+      if (file.type.startsWith('image/')) {
+        const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+        width = dimensions.width;
+        height = dimensions.height;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      console.log('User data:', userData);
+
+      const { data, error } = await supabase
+        .from('media_items')
+        .insert({
+          filename,
+          original_name: file.name,
+          url: urlData.publicUrl,
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          mime_type: file.type,
+          size: file.size,
+          width,
+          height,
+          alt: metadata?.alt,
+          caption: metadata?.caption,
+          tags: metadata?.tags || [],
+          uploaded_by: userData?.user?.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newItem: MediaItem = {
+        id: data.id,
+        filename: data.filename,
+        originalName: data.original_name,
+        url: data.url,
+        type: data.type as 'image' | 'video',
+        mimeType: data.mime_type,
+        size: data.size,
+        width: data.width || undefined,
+        height: data.height || undefined,
+        uploadedAt: new Date(data.uploaded_at),
+        uploadedBy: data.uploaded_by || 'admin',
+        alt: data.alt || undefined,
+        caption: data.caption || undefined,
+        tags: data.tags || [],
+        usage: {
+          posts: [],
+          portfolios: [],
+        },
+      };
+
+      return newItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MEDIA_QUERY_KEY });
@@ -160,8 +180,20 @@ export const useMedia = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const item = media.find(m => m.id === id);
-      if (item && (item.usage.posts.length > 0 || item.usage.portfolios.length > 0)) {
+      if (!item) return;
+
+      if (item.usage.posts.length > 0 || item.usage.portfolios.length > 0) {
         throw new Error('Cannot delete media that is currently in use');
+      }
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('media')
+        .remove([item.filename]);
+
+      if (storageError) {
+        console.error('Error deleting from storage:', storageError);
+        // Continue with database deletion even if storage deletion fails
       }
 
       const { error } = await supabase

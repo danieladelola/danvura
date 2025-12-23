@@ -68,6 +68,7 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAdmin(false);
       } else {
         setIsAdmin(!!data);
+        console.log('Admin check result:', !!data, 'for user:', userId);
       }
     } catch (error) {
       console.error('Error checking admin role:', error);
