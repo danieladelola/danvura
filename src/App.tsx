@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Blog from "./pages/Blog";
@@ -27,6 +28,9 @@ import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import AdminPortfolioNew from "./pages/admin/AdminPortfolioNew";
 import AdminPortfolioEdit from "./pages/admin/AdminPortfolioEdit";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AnalyticsTest from "./pages/admin/AnalyticsTest";
+import IPHistory from "./pages/admin/IPHistory";
+import IPDetail from "./pages/admin/IPDetail";
 import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import AdminMediaLibrary from "./pages/admin/AdminMediaLibrary";
 import AdminTasks from "./pages/admin/AdminTasks";
@@ -44,6 +48,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ScrollToTop />
+              <AnalyticsTracker />
               <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
@@ -68,6 +73,9 @@ const App = () => (
               <Route path="/admin/portfolio/edit/:id" element={<AdminPortfolioEdit />} />
               <Route path="/admin/subscribers" element={<AdminSubscribers />} />
               <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/analytics/test" element={<AnalyticsTest />} />
+              <Route path="/admin/analytics/ip" element={<IPHistory />} />
+              <Route path="/admin/analytics/ip/:ipHash" element={<IPDetail />} />
               <Route path="/admin/media" element={<AdminMediaLibrary />} />
               <Route path="/admin/tasks" element={<AdminTasks />} />
               <Route path="/admin/finance" element={<AdminFinance />} />

@@ -37,4 +37,12 @@ export interface AnalyticsData {
   bounceRate: string;
   topPages: { page: string; views: number }[];
   visitsByDay: { date: string; visits: number }[];
+  topCountries: { country: string; visits: number }[];
+  topReferrers: { referrer: string; visits: number }[];
+  deviceBreakdown: { device: string; percentage: number }[];
+  browserBreakdown: { browser: string; percentage: number }[];
+  realTimeVisitors: number;
+  eventsToday: number;
+  conversionRate: string;
+  visitorPaths: { path: string[]; count: number }[];
 }
