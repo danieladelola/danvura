@@ -153,6 +153,7 @@ const MediaPicker = ({ selectedMedia, onSelect, type = 'all', multiple = false, 
                                 src={item.url}
                                 alt={item.alt || item.originalName}
                                 className="w-full h-full object-cover"
+                                loading="lazy"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-muted">

@@ -223,6 +223,7 @@ const AdminMediaLibrary = () => {
                       src={item.url}
                       alt={item.alt || item.originalName}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                       onError={(e) => {
                         console.error('Image failed to load:', item.url);
                         e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjIwQzE0IDIxLjEgMTMuMSAyMiAxMiAyMkMxMC45IDIyIDEwIDIxLjEgMTAgMjBWNEMxMCAyLjkgMTAuOSAyIDEyIDJaTTEyIDYuNUMxMy4zOCA2LjUgMTQuNSA3LjYyIDE0LjUgOUMxNC41IDEwLjM4IDEzLjM4IDExLjUgMTIgMTEuNUMxMC42MiAxMS41IDkuNSAxMC4zOCA5LjUgOUM5LjUgNy42MiAxMC42MiA2LjUgMTIgNi41WiIgZmlsbD0iIzY5NzM4NSIvPgo8L3N2Zz4=';
@@ -342,6 +343,7 @@ const AdminMediaLibrary = () => {
                   src={selectedMedia.url}
                   alt={selectedMedia.alt || selectedMedia.originalName}
                   className="w-full max-h-96 object-contain rounded-lg"
+                  loading="lazy"
                 />
               ) : (
                 <video
