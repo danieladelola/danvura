@@ -1,103 +1,131 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blog';
-
-const STORAGE_KEY = 'blog_posts';
-
-const defaultPosts: BlogPost[] = [
-  {
-    id: '1',
-    title: 'The Complete Guide to Digital Marketing in 2024',
-    content: '<p>Everything you need to know about building a successful digital marketing strategy this year. From AI integration to authentic content creation.</p><p>Digital marketing continues to evolve at a rapid pace. In this comprehensive guide, we\'ll explore the strategies that are working right now and what you need to focus on to stay ahead of the competition.</p>',
-    excerpt: 'Everything you need to know about building a successful digital marketing strategy this year.',
-    slug: 'complete-guide-digital-marketing-2024',
-    category: 'Strategy',
-    seoTitle: 'Complete Guide to Digital Marketing 2024 | Expert Strategies',
-    metaDescription: 'Master digital marketing in 2024 with our comprehensive guide covering AI integration, content strategy, and proven growth tactics.',
-    keywords: ['digital marketing', 'marketing strategy', '2024 trends', 'AI marketing'],
-    status: 'published',
-    createdAt: '2024-12-15T10:00:00Z',
-    updatedAt: '2024-12-15T10:00:00Z',
-    views: 1250,
-    readTime: '12 min read',
-    featuredImage: null,
-  },
-  {
-    id: '2',
-    title: '5 Social Media Trends That Will Define 2025',
-    content: '<p>Stay ahead of the curve with these emerging trends that will shape how brands connect with audiences on social media.</p>',
-    excerpt: 'Stay ahead of the curve with these emerging trends that will shape how brands connect with audiences.',
-    slug: 'social-media-trends-2025',
-    category: 'Social Media',
-    seoTitle: 'Top 5 Social Media Trends for 2025',
-    metaDescription: 'Discover the social media trends that will dominate 2025 and learn how to leverage them for your brand.',
-    keywords: ['social media', 'trends', '2025', 'marketing'],
-    status: 'published',
-    createdAt: '2024-12-10T10:00:00Z',
-    updatedAt: '2024-12-10T10:00:00Z',
-    views: 890,
-    readTime: '8 min read',
-    featuredImage: null,
-  },
-  {
-    id: '3',
-    title: 'How to Build a Lead Generation Machine',
-    content: '<p>A step-by-step framework for creating systems that consistently attract and convert high-quality leads for your business.</p>',
-    excerpt: 'A step-by-step framework for creating systems that consistently attract and convert high-quality leads.',
-    slug: 'build-lead-generation-machine',
-    category: 'Lead Generation',
-    seoTitle: 'Build a Lead Generation Machine | Step-by-Step Guide',
-    metaDescription: 'Learn how to build automated lead generation systems that attract and convert high-quality leads consistently.',
-    keywords: ['lead generation', 'sales funnel', 'conversion', 'automation'],
-    status: 'published',
-    createdAt: '2024-12-05T10:00:00Z',
-    updatedAt: '2024-12-05T10:00:00Z',
-    views: 654,
-    readTime: '10 min read',
-    featuredImage: null,
-  },
-];
 
 export const useBlogPosts = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setPosts(JSON.parse(stored));
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPosts));
-      setPosts(defaultPosts);
+  const fetchPosts = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error: fetchError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const mappedPosts: BlogPost[] = (data || []).map(post => ({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        excerpt: post.excerpt,
+        slug: post.slug,
+        category: post.category,
+        seoTitle: post.seo_title || '',
+        metaDescription: post.meta_description || '',
+        keywords: post.keywords || [],
+        status: post.status as 'draft' | 'published',
+        createdAt: post.created_at,
+        updatedAt: post.updated_at,
+        views: post.views,
+        readTime: post.read_time || '5 min read',
+        featuredImage: post.featured_image,
+      }));
+
+      setPosts(mappedPosts);
+    } catch (err: any) {
+      console.error('Error fetching posts:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const savePosts = (newPosts: BlogPost[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPosts));
-    setPosts(newPosts);
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  const createPost = async (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert({
+          title: post.title,
+          content: post.content,
+          excerpt: post.excerpt,
+          slug: post.slug,
+          category: post.category,
+          seo_title: post.seoTitle,
+          meta_description: post.metaDescription,
+          keywords: post.keywords,
+          status: post.status,
+          read_time: post.readTime,
+          featured_image: post.featuredImage,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchPosts();
+      return data;
+    } catch (err: any) {
+      console.error('Error creating post:', err);
+      throw err;
+    }
   };
 
-  const createPost = (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
-    const newPost: BlogPost = {
-      ...post,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      views: 0,
-    };
-    savePosts([newPost, ...posts]);
-    return newPost;
+  const updatePost = async (id: string, updates: Partial<BlogPost>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.content !== undefined) dbUpdates.content = updates.content;
+      if (updates.excerpt !== undefined) dbUpdates.excerpt = updates.excerpt;
+      if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
+      if (updates.category !== undefined) dbUpdates.category = updates.category;
+      if (updates.seoTitle !== undefined) dbUpdates.seo_title = updates.seoTitle;
+      if (updates.metaDescription !== undefined) dbUpdates.meta_description = updates.metaDescription;
+      if (updates.keywords !== undefined) dbUpdates.keywords = updates.keywords;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.readTime !== undefined) dbUpdates.read_time = updates.readTime;
+      if (updates.featuredImage !== undefined) dbUpdates.featured_image = updates.featuredImage;
+      if (updates.views !== undefined) dbUpdates.views = updates.views;
+
+      const { error } = await supabase
+        .from('blog_posts')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchPosts();
+    } catch (err: any) {
+      console.error('Error updating post:', err);
+      throw err;
+    }
   };
 
-  const updatePost = (id: string, updates: Partial<BlogPost>) => {
-    const updatedPosts = posts.map(post =>
-      post.id === id ? { ...post, ...updates, updatedAt: new Date().toISOString() } : post
-    );
-    savePosts(updatedPosts);
-  };
+  const deletePost = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
 
-  const deletePost = (id: string) => {
-    savePosts(posts.filter(post => post.id !== id));
+      if (error) throw error;
+
+      await fetchPosts();
+    } catch (err: any) {
+      console.error('Error deleting post:', err);
+      throw err;
+    }
   };
 
   const getPostBySlug = (slug: string) => {
@@ -111,10 +139,12 @@ export const useBlogPosts = () => {
   return {
     posts,
     isLoading,
+    error,
     createPost,
     updatePost,
     deletePost,
     getPostBySlug,
     getPublishedPosts,
+    refetch: fetchPosts,
   };
 };

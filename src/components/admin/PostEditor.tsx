@@ -117,7 +117,7 @@ const PostEditor = ({ postId }: PostEditorProps) => {
     setFormData(prev => ({ ...prev, featuredImage: null }));
   };
 
-  const handleSubmit = (status: 'draft' | 'published') => {
+  const handleSubmit = async (status: 'draft' | 'published') => {
     if (!formData.title || !formData.content) {
       toast({
         title: 'Error',
@@ -129,25 +129,32 @@ const PostEditor = ({ postId }: PostEditorProps) => {
 
     const postData = { ...formData, status };
 
-    if (postId) {
-      updatePost(postId, postData);
-      toast({
-        title: 'Post Updated',
-        description: 'Your post has been updated successfully.',
-      });
-    } else {
-      const newPost = createPost(postData);
-      // Add media usage for new post
-      if (selectedMedia) {
-        addUsage(selectedMedia.id, 'posts', newPost.id);
+    try {
+      if (postId) {
+        await updatePost(postId, postData);
+        toast({
+          title: 'Post Updated',
+          description: 'Your post has been updated successfully.',
+        });
+      } else {
+        const newPost = await createPost(postData);
+        // Add media usage for new post
+        if (selectedMedia && newPost) {
+          await addUsage(selectedMedia.id, 'posts', newPost.id);
+        }
+        toast({
+          title: 'Post Created',
+          description: 'Your post has been created successfully.',
+        });
       }
+      navigate('/admin/posts');
+    } catch (error: any) {
       toast({
-        title: 'Post Created',
-        description: 'Your post has been created successfully.',
+        title: 'Error',
+        description: error.message || 'An error occurred',
+        variant: 'destructive',
       });
     }
-
-    navigate('/admin/posts');
   };
 
   const categories = [

@@ -1,64 +1,139 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Expense, SavingsGoal, BillingCycle } from '@/types/finance';
-
-const EXPENSES_KEY = 'admin_expenses';
-const SAVINGS_KEY = 'admin_savings';
 
 export const useFinance = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [savingsGoal, setSavingsGoal] = useState<SavingsGoal | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const storedExpenses = localStorage.getItem(EXPENSES_KEY);
-    if (storedExpenses) {
-      setExpenses(JSON.parse(storedExpenses));
-    }
+  const fetchExpenses = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    const storedSavings = localStorage.getItem(SAVINGS_KEY);
-    if (storedSavings) {
-      setSavingsGoal(JSON.parse(storedSavings));
+      if (fetchError) throw fetchError;
+
+      const mappedExpenses: Expense[] = (data || []).map(exp => ({
+        id: exp.id,
+        name: exp.name,
+        amount: Number(exp.amount),
+        billingCycle: exp.billing_cycle as BillingCycle,
+        isPaid: exp.is_paid,
+        createdAt: exp.created_at,
+        paidAt: exp.paid_at || undefined,
+      }));
+
+      setExpenses(mappedExpenses);
+    } catch (err: any) {
+      console.error('Error fetching expenses:', err);
+      setError(err.message);
     }
   }, []);
 
-  const saveExpenses = (newExpenses: Expense[]) => {
-    localStorage.setItem(EXPENSES_KEY, JSON.stringify(newExpenses));
-    setExpenses(newExpenses);
-  };
+  const fetchSavingsGoal = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('savings_goals')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-  const saveSavingsGoal = (goal: SavingsGoal | null) => {
-    if (goal) {
-      localStorage.setItem(SAVINGS_KEY, JSON.stringify(goal));
-    } else {
-      localStorage.removeItem(SAVINGS_KEY);
+      if (fetchError) throw fetchError;
+
+      if (data) {
+        setSavingsGoal({
+          id: data.id,
+          targetMonth: data.target_month,
+          targetAmount: Number(data.target_amount),
+          savedAmount: Number(data.saved_amount),
+          createdAt: data.created_at,
+          updatedAt: data.updated_at,
+        });
+      } else {
+        setSavingsGoal(null);
+      }
+    } catch (err: any) {
+      console.error('Error fetching savings goal:', err);
+      setError(err.message);
     }
-    setSavingsGoal(goal);
+  }, []);
+
+  const fetchAll = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    await Promise.all([fetchExpenses(), fetchSavingsGoal()]);
+    setIsLoading(false);
+  }, [fetchExpenses, fetchSavingsGoal]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  const addExpense = async (name: string, amount: number, billingCycle: BillingCycle = 'monthly') => {
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .insert({
+          name,
+          amount,
+          billing_cycle: billingCycle,
+        });
+
+      if (error) throw error;
+
+      await fetchExpenses();
+    } catch (err: any) {
+      console.error('Error adding expense:', err);
+      throw err;
+    }
   };
 
-  const addExpense = (name: string, amount: number, billingCycle: BillingCycle = 'monthly') => {
-    const newExpense: Expense = {
-      id: Date.now().toString(),
-      name,
-      amount,
-      billingCycle,
-      isPaid: false,
-      createdAt: new Date().toISOString(),
-    };
-    saveExpenses([...expenses, newExpense]);
+  const updateExpense = async (id: string, updates: Partial<Expense>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
+      if (updates.billingCycle !== undefined) dbUpdates.billing_cycle = updates.billingCycle;
+      if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
+      if (updates.paidAt !== undefined) dbUpdates.paid_at = updates.paidAt;
+
+      const { error } = await supabase
+        .from('expenses')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+    } catch (err: any) {
+      console.error('Error updating expense:', err);
+      throw err;
+    }
   };
 
-  const updateExpense = (id: string, updates: Partial<Expense>) => {
-    const updated = expenses.map(exp => 
-      exp.id === id ? { ...exp, ...updates } : exp
-    );
-    saveExpenses(updated);
+  const deleteExpense = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchExpenses();
+    } catch (err: any) {
+      console.error('Error deleting expense:', err);
+      throw err;
+    }
   };
 
-  const deleteExpense = (id: string) => {
-    saveExpenses(expenses.filter(exp => exp.id !== id));
-  };
-
-  const markExpensePaid = (id: string, isPaid: boolean) => {
-    updateExpense(id, { isPaid, paidAt: isPaid ? new Date().toISOString() : undefined });
+  const markExpensePaid = async (id: string, isPaid: boolean) => {
+    await updateExpense(id, { isPaid, paidAt: isPaid ? new Date().toISOString() : undefined });
   };
 
   const getMonthlyAmount = (expense: Expense): number => {
@@ -76,30 +151,62 @@ export const useFinance = () => {
   const paidAmount = paidExpenses.reduce((sum, exp) => sum + getMonthlyAmount(exp), 0);
   const remainingAmount = totalMonthlyExpenses - paidAmount;
 
-  const setSavings = (targetMonth: string, targetAmount: number, savedAmount: number = 0) => {
-    const goal: SavingsGoal = {
-      id: Date.now().toString(),
-      targetMonth,
-      targetAmount,
-      savedAmount,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    saveSavingsGoal(goal);
-  };
+  const setSavings = async (targetMonth: string, targetAmount: number, savedAmount: number = 0) => {
+    try {
+      // Delete existing goals first
+      await supabase.from('savings_goals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
-  const updateSavedAmount = (amount: number) => {
-    if (savingsGoal) {
-      saveSavingsGoal({
-        ...savingsGoal,
-        savedAmount: amount,
-        updatedAt: new Date().toISOString(),
-      });
+      const { error } = await supabase
+        .from('savings_goals')
+        .insert({
+          target_month: targetMonth,
+          target_amount: targetAmount,
+          saved_amount: savedAmount,
+        });
+
+      if (error) throw error;
+
+      await fetchSavingsGoal();
+    } catch (err: any) {
+      console.error('Error setting savings goal:', err);
+      throw err;
     }
   };
 
-  const resetSavings = () => {
-    saveSavingsGoal(null);
+  const updateSavedAmount = async (amount: number) => {
+    if (!savingsGoal) return;
+
+    try {
+      const { error } = await supabase
+        .from('savings_goals')
+        .update({ saved_amount: amount })
+        .eq('id', savingsGoal.id);
+
+      if (error) throw error;
+
+      await fetchSavingsGoal();
+    } catch (err: any) {
+      console.error('Error updating saved amount:', err);
+      throw err;
+    }
+  };
+
+  const resetSavings = async () => {
+    try {
+      if (savingsGoal) {
+        const { error } = await supabase
+          .from('savings_goals')
+          .delete()
+          .eq('id', savingsGoal.id);
+
+        if (error) throw error;
+      }
+
+      setSavingsGoal(null);
+    } catch (err: any) {
+      console.error('Error resetting savings:', err);
+      throw err;
+    }
   };
 
   const getDailySavingsNeeded = (): number => {
@@ -122,6 +229,8 @@ export const useFinance = () => {
   return {
     expenses,
     savingsGoal,
+    isLoading,
+    error,
     addExpense,
     updateExpense,
     deleteExpense,
@@ -135,5 +244,6 @@ export const useFinance = () => {
     resetSavings,
     getDailySavingsNeeded,
     getSavingsProgress,
+    refetch: fetchAll,
   };
 };
