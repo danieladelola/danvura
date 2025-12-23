@@ -89,7 +89,7 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
     setFormData(prev => ({ ...prev, mediaUrl: '' }));
   };
 
-  const handleSubmit = (status: 'draft' | 'published') => {
+  const handleSubmit = async (status: 'draft' | 'published') => {
     if (!formData.title || !formData.category || !formData.mediaUrl) {
       toast({
         title: 'Error',
@@ -105,25 +105,32 @@ const PortfolioEditor = ({ itemId }: PortfolioEditorProps) => {
       category: formData.category as PortfolioCategory,
     };
 
-    if (itemId) {
-      updateItem(itemId, itemData);
-      toast({
-        title: 'Portfolio Item Updated',
-        description: 'Your portfolio item has been updated successfully.',
-      });
-    } else {
-      const newItem = createItem(itemData);
-      // Add media usage for new portfolio item
-      if (selectedMedia) {
-        addUsage(selectedMedia.id, 'portfolios', newItem.id);
+    try {
+      if (itemId) {
+        await updateItem(itemId, itemData);
+        toast({
+          title: 'Portfolio Item Updated',
+          description: 'Your portfolio item has been updated successfully.',
+        });
+      } else {
+        const newItem = await createItem(itemData);
+        // Add media usage for new portfolio item
+        if (selectedMedia && newItem) {
+          await addUsage(selectedMedia.id, 'portfolios', newItem.id);
+        }
+        toast({
+          title: 'Portfolio Item Created',
+          description: 'Your portfolio item has been created successfully.',
+        });
       }
+      navigate('/admin/portfolio');
+    } catch (error: any) {
       toast({
-        title: 'Portfolio Item Created',
-        description: 'Your portfolio item has been created successfully.',
+        title: 'Error',
+        description: error.message || 'An error occurred',
+        variant: 'destructive',
       });
     }
-
-    navigate('/admin/portfolio');
   };
 
   return (

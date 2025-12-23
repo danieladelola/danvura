@@ -1,81 +1,111 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { PortfolioItem, PortfolioCategory } from '@/types/blog';
-
-const STORAGE_KEY = 'portfolio_items';
-
-const defaultItems: PortfolioItem[] = [
-  {
-    id: '1',
-    title: 'Brand Identity Design',
-    category: 'Brand Design',
-    mediaUrl: '/media/branddesigns/446280478_465231482561874_7528450714226636932_n.jpg',
-    mediaType: 'image',
-    status: 'published',
-    createdAt: '2024-12-15T10:00:00Z',
-    updatedAt: '2024-12-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    title: 'Social Media Graphics',
-    category: 'Brand Design',
-    mediaUrl: '/media/branddesigns/Ci-gusta-friday-post.png',
-    mediaType: 'image',
-    status: 'published',
-    createdAt: '2024-12-10T10:00:00Z',
-    updatedAt: '2024-12-10T10:00:00Z',
-  },
-  {
-    id: '3',
-    title: 'Video Advertisement',
-    category: 'Video Creation/editing',
-    mediaUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    mediaType: 'video',
-    status: 'published',
-    createdAt: '2024-12-05T10:00:00Z',
-    updatedAt: '2024-12-05T10:00:00Z',
-  },
-];
 
 export const usePortfolioItems = () => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setItems(JSON.parse(stored));
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultItems));
-      setItems(defaultItems);
+  const fetchItems = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('portfolio_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const mappedItems: PortfolioItem[] = (data || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        category: item.category as PortfolioCategory,
+        mediaUrl: item.media_url,
+        mediaType: item.media_type as 'image' | 'video',
+        status: item.status as 'draft' | 'published',
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+      }));
+
+      setItems(mappedItems);
+    } catch (err: any) {
+      console.error('Error fetching portfolio items:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const saveItems = (newItems: PortfolioItem[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
-    setItems(newItems);
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  const createItem = async (item: Omit<PortfolioItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('portfolio_items')
+        .insert({
+          title: item.title,
+          category: item.category,
+          media_url: item.mediaUrl,
+          media_type: item.mediaType,
+          status: item.status,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchItems();
+      return data;
+    } catch (err: any) {
+      console.error('Error creating portfolio item:', err);
+      throw err;
+    }
   };
 
-  const createItem = (item: Omit<PortfolioItem, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newItem: PortfolioItem = {
-      ...item,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    saveItems([newItem, ...items]);
-    return newItem;
+  const updateItem = async (id: string, updates: Partial<PortfolioItem>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.category !== undefined) dbUpdates.category = updates.category;
+      if (updates.mediaUrl !== undefined) dbUpdates.media_url = updates.mediaUrl;
+      if (updates.mediaType !== undefined) dbUpdates.media_type = updates.mediaType;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+      const { error } = await supabase
+        .from('portfolio_items')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchItems();
+    } catch (err: any) {
+      console.error('Error updating portfolio item:', err);
+      throw err;
+    }
   };
 
-  const updateItem = (id: string, updates: Partial<PortfolioItem>) => {
-    const updatedItems = items.map(item =>
-      item.id === id ? { ...item, ...updates, updatedAt: new Date().toISOString() } : item
-    );
-    saveItems(updatedItems);
-  };
+  const deleteItem = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('portfolio_items')
+        .delete()
+        .eq('id', id);
 
-  const deleteItem = (id: string) => {
-    saveItems(items.filter(item => item.id !== id));
+      if (error) throw error;
+
+      await fetchItems();
+    } catch (err: any) {
+      console.error('Error deleting portfolio item:', err);
+      throw err;
+    }
   };
 
   const getPublishedItems = () => {
@@ -90,10 +120,12 @@ export const usePortfolioItems = () => {
   return {
     items,
     isLoading,
+    error,
     createItem,
     updateItem,
     deleteItem,
     getPublishedItems,
     getItemsByCategory,
+    refetch: fetchItems,
   };
 };

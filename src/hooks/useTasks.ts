@@ -1,42 +1,79 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, TaskStatus } from '@/types/task';
-
-const TASKS_KEY = 'admin_tasks';
+import { supabase } from '@/integrations/supabase/client';
+import { Task, TaskStatus, RecurrenceType } from '@/types/task';
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load tasks from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem(TASKS_KEY);
-    if (stored) {
-      setTasks(JSON.parse(stored));
+  const fetchTasks = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('due_date', { ascending: true });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const mappedTasks: Task[] = (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || undefined,
+        dueDate: task.due_date,
+        dueTime: task.due_time || undefined,
+        status: task.status as TaskStatus,
+        recurrence: task.recurrence as RecurrenceType,
+        customMonthDuration: task.custom_month_duration || undefined,
+        recurrenceEndDate: task.recurrence_end_date || undefined,
+        completedAt: task.completed_at || undefined,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+        lastNotified: task.last_notified || undefined,
+      }));
+
+      setTasks(mappedTasks);
+    } catch (err: any) {
+      console.error('Error fetching tasks:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // Save tasks to localStorage
-  const saveTasks = useCallback((newTasks: Task[]) => {
-    localStorage.setItem(TASKS_KEY, JSON.stringify(newTasks));
-    setTasks(newTasks);
-  }, []);
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   // Update task statuses based on due dates
-  const updateTaskStatuses = useCallback(() => {
+  const updateTaskStatuses = useCallback(async () => {
     const now = new Date();
-    const updatedTasks = tasks.map(task => {
-      if (task.status === 'completed') return task;
-      
+    const tasksToUpdate = tasks.filter(task => {
+      if (task.status === 'completed') return false;
       const dueDateTime = new Date(`${task.dueDate}T${task.dueTime || '23:59'}`);
-      if (dueDateTime < now && task.status !== 'overdue') {
-        return { ...task, status: 'overdue' as TaskStatus };
-      }
-      return task;
+      return dueDateTime < now && task.status !== 'overdue';
     });
-    
-    if (JSON.stringify(updatedTasks) !== JSON.stringify(tasks)) {
-      saveTasks(updatedTasks);
+
+    for (const task of tasksToUpdate) {
+      try {
+        await supabase
+          .from('tasks')
+          .update({ status: 'overdue' })
+          .eq('id', task.id);
+      } catch (err) {
+        console.error('Error updating task status:', err);
+      }
     }
-  }, [tasks, saveTasks]);
+
+    if (tasksToUpdate.length > 0) {
+      await fetchTasks();
+    }
+  }, [tasks, fetchTasks]);
 
   // Check statuses periodically
   useEffect(() => {
@@ -45,36 +82,81 @@ export const useTasks = () => {
     return () => clearInterval(interval);
   }, [updateTaskStatuses]);
 
-  const createTask = useCallback((taskData: Omit<Task, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: crypto.randomUUID(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    saveTasks([...tasks, newTask]);
-    return newTask;
-  }, [tasks, saveTasks]);
+  const createTask = async (taskData: Omit<Task, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          title: taskData.title,
+          description: taskData.description,
+          due_date: taskData.dueDate,
+          due_time: taskData.dueTime,
+          recurrence: taskData.recurrence,
+          custom_month_duration: taskData.customMonthDuration,
+          recurrence_end_date: taskData.recurrenceEndDate,
+        })
+        .select()
+        .single();
 
-  const updateTask = useCallback((id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === id
-        ? { ...task, ...updates, updatedAt: new Date().toISOString() }
-        : task
-    );
-    saveTasks(updatedTasks);
-  }, [tasks, saveTasks]);
+      if (error) throw error;
 
-  const deleteTask = useCallback((id: string) => {
-    saveTasks(tasks.filter(task => task.id !== id));
-  }, [tasks, saveTasks]);
+      await fetchTasks();
+      return data;
+    } catch (err: any) {
+      console.error('Error creating task:', err);
+      throw err;
+    }
+  };
 
-  const markComplete = useCallback((id: string) => {
-    updateTask(id, { status: 'completed', completedAt: new Date().toISOString() });
-  }, [updateTask]);
+  const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
+      if (updates.dueTime !== undefined) dbUpdates.due_time = updates.dueTime;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.recurrence !== undefined) dbUpdates.recurrence = updates.recurrence;
+      if (updates.customMonthDuration !== undefined) dbUpdates.custom_month_duration = updates.customMonthDuration;
+      if (updates.recurrenceEndDate !== undefined) dbUpdates.recurrence_end_date = updates.recurrenceEndDate;
+      if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
+      if (updates.lastNotified !== undefined) dbUpdates.last_notified = updates.lastNotified;
 
-  const markPending = useCallback((id: string) => {
+      const { error } = await supabase
+        .from('tasks')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchTasks();
+    } catch (err: any) {
+      console.error('Error updating task:', err);
+      throw err;
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchTasks();
+    } catch (err: any) {
+      console.error('Error deleting task:', err);
+      throw err;
+    }
+  };
+
+  const markComplete = async (id: string) => {
+    await updateTask(id, { status: 'completed', completedAt: new Date().toISOString() });
+  };
+
+  const markPending = async (id: string) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     
@@ -82,8 +164,8 @@ export const useTasks = () => {
     const dueDateTime = new Date(`${task.dueDate}T${task.dueTime || '23:59'}`);
     const newStatus: TaskStatus = dueDateTime < now ? 'overdue' : 'pending';
     
-    updateTask(id, { status: newStatus, completedAt: undefined });
-  }, [tasks, updateTask]);
+    await updateTask(id, { status: newStatus, completedAt: undefined });
+  };
 
   // Get tasks that need reminders (pending/overdue tasks due soon)
   const getUpcomingReminders = useCallback(() => {
@@ -97,13 +179,15 @@ export const useTasks = () => {
     });
   }, [tasks]);
 
-  // Get overdue tasks count
+  // Get counts
   const overdueCount = tasks.filter(t => t.status === 'overdue').length;
   const pendingCount = tasks.filter(t => t.status === 'pending').length;
   const completedCount = tasks.filter(t => t.status === 'completed').length;
 
   return {
     tasks,
+    isLoading,
+    error,
     createTask,
     updateTask,
     deleteTask,
@@ -113,5 +197,6 @@ export const useTasks = () => {
     overdueCount,
     pendingCount,
     completedCount,
+    refetch: fetchTasks,
   };
 };

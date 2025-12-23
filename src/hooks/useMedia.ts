@@ -1,102 +1,125 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { MediaItem } from '@/types/media';
-
-const STORAGE_KEY = 'media_library';
-
-const defaultMedia: MediaItem[] = [
-  {
-    id: 'test-1',
-    filename: 'test-image.jpg',
-    originalName: 'test-image.jpg',
-    url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5QkE0IiBmb250LXNpemU9IjE0Ij5UZXN0IEltYWdlPC90ZXh0Pgo8L3N2Zz4=',
-    type: 'image',
-    mimeType: 'image/svg+xml',
-    size: 1000,
-    width: 200,
-    height: 200,
-    uploadedAt: new Date(),
-    uploadedBy: 'admin',
-    alt: 'Test Image',
-    caption: 'A test image for debugging',
-    tags: ['test'],
-    usage: {
-      posts: [],
-      portfolios: [],
-    },
-  },
-];
 
 export const useMedia = () => {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Convert uploadedAt back to Date objects
-      const mediaWithDates = parsed.map((item: any) => ({
-        ...item,
-        uploadedAt: new Date(item.uploadedAt),
+  const fetchMedia = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('media_items')
+        .select('*')
+        .order('uploaded_at', { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const mappedMedia: MediaItem[] = (data || []).map(item => ({
+        id: item.id,
+        filename: item.filename,
+        originalName: item.original_name,
+        url: item.url,
+        type: item.type as 'image' | 'video',
+        mimeType: item.mime_type,
+        size: item.size,
+        width: item.width || undefined,
+        height: item.height || undefined,
+        duration: item.duration || undefined,
+        uploadedAt: new Date(item.uploaded_at),
+        uploadedBy: item.uploaded_by || 'admin',
+        alt: item.alt || undefined,
+        caption: item.caption || undefined,
+        tags: item.tags || [],
+        usage: {
+          posts: (item.post_ids || []) as string[],
+          portfolios: (item.portfolio_ids || []) as string[],
+        },
       }));
-      setMedia(mediaWithDates);
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultMedia));
-      setMedia(defaultMedia);
+
+      setMedia(mappedMedia);
+    } catch (err: any) {
+      console.error('Error fetching media:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  // Debug: log when media changes
   useEffect(() => {
-    console.log('useMedia: media state updated', media.length, 'items');
-  }, [media]);
+    fetchMedia();
+  }, [fetchMedia]);
 
-  const saveMedia = (newMedia: MediaItem[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newMedia));
-    setMedia(newMedia);
-  };
-
-  const uploadMedia = async (file: File, metadata?: { alt?: string; caption?: string; tags?: string[] }): Promise<MediaItem> => {
+  const uploadMedia = async (
+    file: File, 
+    metadata?: { alt?: string; caption?: string; tags?: string[] }
+  ): Promise<MediaItem> => {
     return new Promise((resolve, reject) => {
-      const id = Date.now().toString();
+      const id = crypto.randomUUID();
       const filename = `${id}-${file.name}`;
 
-      // Convert file to data URL for immediate display
+      // Convert file to data URL for storage
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const dataUrl = event.target?.result as string;
-        console.log('Data URL generated for', file.name, dataUrl.substring(0, 50) + '...');
+      reader.onload = async (event) => {
+        try {
+          const dataUrl = event.target?.result as string;
+          
+          const { data: userData } = await supabase.auth.getUser();
 
-        const newMediaItem: MediaItem = {
-          id,
-          filename,
-          originalName: file.name,
-          url: dataUrl, // Use data URL instead of file path
-          type: file.type.startsWith('image/') ? 'image' : 'video',
-          mimeType: file.type,
-          size: file.size,
-          uploadedAt: new Date(),
-          uploadedBy: 'admin', // In real app, get from auth
-          alt: metadata?.alt,
-          caption: metadata?.caption,
-          tags: metadata?.tags || [],
-          usage: {
-            posts: [],
-            portfolios: [],
-          },
-        };
+          const { data, error } = await supabase
+            .from('media_items')
+            .insert({
+              filename,
+              original_name: file.name,
+              url: dataUrl,
+              type: file.type.startsWith('image/') ? 'image' : 'video',
+              mime_type: file.type,
+              size: file.size,
+              width: 1920, // placeholder
+              height: 1080, // placeholder
+              alt: metadata?.alt,
+              caption: metadata?.caption,
+              tags: metadata?.tags || [],
+              uploaded_by: userData?.user?.id,
+            })
+            .select()
+            .single();
 
-        // For images, you might want to get dimensions, but for now skip
-        if (file.type.startsWith('image/')) {
-          // In real implementation, use Image API to get dimensions
-          newMediaItem.width = 1920; // placeholder
-          newMediaItem.height = 1080; // placeholder
+          if (error) throw error;
+
+          const newItem: MediaItem = {
+            id: data.id,
+            filename: data.filename,
+            originalName: data.original_name,
+            url: data.url,
+            type: data.type as 'image' | 'video',
+            mimeType: data.mime_type,
+            size: data.size,
+            width: data.width || undefined,
+            height: data.height || undefined,
+            uploadedAt: new Date(data.uploaded_at),
+            uploadedBy: data.uploaded_by || 'admin',
+            alt: data.alt || undefined,
+            caption: data.caption || undefined,
+            tags: data.tags || [],
+            usage: {
+              posts: [],
+              portfolios: [],
+            },
+          };
+
+          await fetchMedia();
+          resolve(newItem);
+        } catch (err: any) {
+          console.error('Error uploading media:', err);
+          reject(err);
         }
-
-        saveMedia([newMediaItem, ...media]);
-        console.log('Media uploaded:', newMediaItem);
-        resolve(newMediaItem);
       };
       reader.onerror = (error) => {
         console.error('FileReader error:', error);
@@ -106,49 +129,90 @@ export const useMedia = () => {
     });
   };
 
-  const updateMedia = (id: string, updates: Partial<MediaItem>) => {
-    const updatedMedia = media.map(item =>
-      item.id === id ? { ...item, ...updates } : item
-    );
-    saveMedia(updatedMedia);
-  };
+  const updateMedia = async (id: string, updates: Partial<MediaItem>) => {
+    try {
+      const dbUpdates: any = {};
+      if (updates.alt !== undefined) dbUpdates.alt = updates.alt;
+      if (updates.caption !== undefined) dbUpdates.caption = updates.caption;
+      if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
 
-  const deleteMedia = (id: string) => {
-    const item = media.find(m => m.id === id);
-    if (item && (item.usage.posts.length > 0 || item.usage.portfolios.length > 0)) {
-      throw new Error('Cannot delete media that is currently in use');
+      const { error } = await supabase
+        .from('media_items')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchMedia();
+    } catch (err: any) {
+      console.error('Error updating media:', err);
+      throw err;
     }
-    saveMedia(media.filter(item => item.id !== id));
   };
 
-  const addUsage = (id: string, type: 'posts' | 'portfolios', itemId: string) => {
-    const updatedMedia = media.map(item =>
-      item.id === id
-        ? {
-            ...item,
-            usage: {
-              ...item.usage,
-              [type]: [...item.usage[type], itemId],
-            },
-          }
-        : item
-    );
-    saveMedia(updatedMedia);
+  const deleteMedia = async (id: string) => {
+    try {
+      const item = media.find(m => m.id === id);
+      if (item && (item.usage.posts.length > 0 || item.usage.portfolios.length > 0)) {
+        throw new Error('Cannot delete media that is currently in use');
+      }
+
+      const { error } = await supabase
+        .from('media_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await fetchMedia();
+    } catch (err: any) {
+      console.error('Error deleting media:', err);
+      throw err;
+    }
   };
 
-  const removeUsage = (id: string, type: 'posts' | 'portfolios', itemId: string) => {
-    const updatedMedia = media.map(item =>
-      item.id === id
-        ? {
-            ...item,
-            usage: {
-              ...item.usage,
-              [type]: item.usage[type].filter(usageId => usageId !== itemId),
-            },
-          }
-        : item
-    );
-    saveMedia(updatedMedia);
+  const addUsage = async (id: string, type: 'posts' | 'portfolios', itemId: string) => {
+    try {
+      const item = media.find(m => m.id === id);
+      if (!item) return;
+
+      const column = type === 'posts' ? 'post_ids' : 'portfolio_ids';
+      const currentIds = item.usage[type];
+      
+      if (!currentIds.includes(itemId)) {
+        const { error } = await supabase
+          .from('media_items')
+          .update({ [column]: [...currentIds, itemId] })
+          .eq('id', id);
+
+        if (error) throw error;
+        await fetchMedia();
+      }
+    } catch (err: any) {
+      console.error('Error adding usage:', err);
+      throw err;
+    }
+  };
+
+  const removeUsage = async (id: string, type: 'posts' | 'portfolios', itemId: string) => {
+    try {
+      const item = media.find(m => m.id === id);
+      if (!item) return;
+
+      const column = type === 'posts' ? 'post_ids' : 'portfolio_ids';
+      const currentIds = item.usage[type].filter(usageId => usageId !== itemId);
+      
+      const { error } = await supabase
+        .from('media_items')
+        .update({ [column]: currentIds })
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchMedia();
+    } catch (err: any) {
+      console.error('Error removing usage:', err);
+      throw err;
+    }
   };
 
   const getMediaById = (id: string) => {
@@ -162,6 +226,7 @@ export const useMedia = () => {
   return {
     media,
     isLoading,
+    error,
     uploadMedia,
     updateMedia,
     deleteMedia,
@@ -169,5 +234,6 @@ export const useMedia = () => {
     removeUsage,
     getMediaById,
     getMediaByType,
+    refetch: fetchMedia,
   };
 };
