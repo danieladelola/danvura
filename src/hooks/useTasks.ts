@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Task, TaskStatus, RecurrenceType } from '@/types/task';
 
 export const useTasks = () => {
@@ -12,29 +11,25 @@ export const useTasks = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('tasks')
-        .select('*')
-        .order('due_date', { ascending: true });
+      const response = await fetch('/api/tasks');
+      if (!response.ok) throw new Error('Failed to fetch tasks');
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      const data = await response.json();
 
-      const mappedTasks: Task[] = (data || []).map(task => ({
+      const mappedTasks: Task[] = data.map((task: any) => ({
         id: task.id,
         title: task.title,
         description: task.description || undefined,
-        dueDate: task.due_date,
-        dueTime: task.due_time || undefined,
+        dueDate: task.dueDate,
+        dueTime: task.dueTime || undefined,
         status: task.status as TaskStatus,
         recurrence: task.recurrence as RecurrenceType,
-        customMonthDuration: task.custom_month_duration || undefined,
-        recurrenceEndDate: task.recurrence_end_date || undefined,
-        completedAt: task.completed_at || undefined,
-        createdAt: task.created_at,
-        updatedAt: task.updated_at,
-        lastNotified: task.last_notified || undefined,
+        customMonthDuration: task.customMonthDuration || undefined,
+        recurrenceEndDate: task.recurrenceEndDate || undefined,
+        completedAt: task.completedAt || undefined,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        lastNotified: task.lastNotified || undefined,
       }));
 
       setTasks(mappedTasks);
@@ -61,10 +56,14 @@ export const useTasks = () => {
 
     for (const task of tasksToUpdate) {
       try {
-        await supabase
-          .from('tasks')
-          .update({ status: 'overdue' })
-          .eq('id', task.id);
+        await fetch(`/api/tasks/${task.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'overdue',
+            updatedAt: new Date().toISOString(),
+          }),
+        });
       } catch (err) {
         console.error('Error updating task status:', err);
       }
@@ -84,22 +83,24 @@ export const useTasks = () => {
 
   const createTask = async (taskData: Omit<Task, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert({
+      const response = await fetch('http://localhost:3001/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: taskData.title,
           description: taskData.description,
-          due_date: taskData.dueDate,
-          due_time: taskData.dueTime,
+          dueDate: taskData.dueDate,
+          dueTime: taskData.dueTime,
+          status: 'pending',
           recurrence: taskData.recurrence,
-          custom_month_duration: taskData.customMonthDuration,
-          recurrence_end_date: taskData.recurrenceEndDate,
-        })
-        .select()
-        .single();
+          customMonthDuration: taskData.customMonthDuration,
+          recurrenceEndDate: taskData.recurrenceEndDate,
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create task');
 
+      const data = await response.json();
       await fetchTasks();
       return data;
     } catch (err: any) {
@@ -110,24 +111,16 @@ export const useTasks = () => {
 
   const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
     try {
-      const dbUpdates: any = {};
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
-      if (updates.dueDate !== undefined) dbUpdates.due_date = updates.dueDate;
-      if (updates.dueTime !== undefined) dbUpdates.due_time = updates.dueTime;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
-      if (updates.recurrence !== undefined) dbUpdates.recurrence = updates.recurrence;
-      if (updates.customMonthDuration !== undefined) dbUpdates.custom_month_duration = updates.customMonthDuration;
-      if (updates.recurrenceEndDate !== undefined) dbUpdates.recurrence_end_date = updates.recurrenceEndDate;
-      if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
-      if (updates.lastNotified !== undefined) dbUpdates.last_notified = updates.lastNotified;
+      const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
 
-      const { error } = await supabase
-        .from('tasks')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update task');
 
       await fetchTasks();
     } catch (err: any) {
@@ -138,12 +131,11 @@ export const useTasks = () => {
 
   const deleteTask = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete task');
 
       await fetchTasks();
     } catch (err: any) {

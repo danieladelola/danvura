@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Subscriber } from '@/types/subscriber';
 
 export const useSubscribers = () => {
@@ -12,22 +11,17 @@ export const useSubscribers = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('subscribers')
-        .select('*')
-        .order('signup_date', { ascending: false });
+      const response = await fetch('/api/emails');
+      if (!response.ok) throw new Error('Failed to fetch subscribers');
+      const data = await response.json();
 
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      const mappedSubscribers: Subscriber[] = (data || []).map(sub => ({
+      const mappedSubscribers: Subscriber[] = data.map((sub: any) => ({
         id: sub.id,
         email: sub.email,
-        firstName: sub.name || undefined,
+        firstName: sub.firstName || undefined,
         source: 'email-list' as const,
         status: sub.status as 'active' | 'unsubscribed',
-        signupDate: sub.signup_date,
+        signupDate: sub.signupDate,
       }));
 
       setSubscribers(mappedSubscribers);
@@ -71,22 +65,20 @@ export const useSubscribers = () => {
         throw new Error('Email already subscribed');
       }
 
-      const { data, error } = await supabase
-        .from('subscribers')
-        .insert({
+      const response = await fetch('/api/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           email: subscriber.email,
-          name: subscriber.firstName,
+          firstName: subscriber.firstName,
           status: subscriber.status,
-        })
-        .select()
-        .single();
+          signupDate: new Date().toISOString(),
+        }),
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          throw new Error('Email already subscribed');
-        }
-        throw error;
-      }
+      if (!response.ok) throw new Error('Failed to add subscriber');
+
+      const data = await response.json();
 
       await fetchSubscribers();
       return data;
@@ -98,17 +90,13 @@ export const useSubscribers = () => {
 
   const updateSubscriber = async (id: string, updates: Partial<Subscriber>) => {
     try {
-      const dbUpdates: any = {};
-      if (updates.email !== undefined) dbUpdates.email = updates.email;
-      if (updates.firstName !== undefined) dbUpdates.name = updates.firstName;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      const response = await fetch(`/api/emails/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
 
-      const { error } = await supabase
-        .from('subscribers')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update subscriber');
 
       await fetchSubscribers();
     } catch (err: any) {
@@ -119,12 +107,10 @@ export const useSubscribers = () => {
 
   const deleteSubscriber = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('subscribers')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const response = await fetch(`/api/emails/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete subscriber');
 
       await fetchSubscribers();
     } catch (err: any) {
@@ -135,13 +121,11 @@ export const useSubscribers = () => {
 
   const deleteSubscribers = async (ids: string[]) => {
     try {
-      const { error } = await supabase
-        .from('subscribers')
-        .delete()
-        .in('id', ids);
-
-      if (error) throw error;
-
+      for (const id of ids) {
+        await fetch(`/api/emails/${id}`, {
+          method: 'DELETE',
+        });
+      }
       await fetchSubscribers();
     } catch (err: any) {
       console.error('Error deleting subscribers:', err);

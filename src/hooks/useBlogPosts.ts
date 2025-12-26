@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blog';
 
 export const useBlogPosts = () => {
@@ -12,31 +11,27 @@ export const useBlogPosts = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error: fetchError } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/posts');
+      if (!response.ok) throw new Error('Failed to fetch posts');
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      const data = await response.json();
 
-      const mappedPosts: BlogPost[] = (data || []).map(post => ({
+      const mappedPosts: BlogPost[] = data.map((post: any) => ({
         id: post.id,
         title: post.title,
         content: post.content,
         excerpt: post.excerpt,
         slug: post.slug,
         category: post.category,
-        seoTitle: post.seo_title || '',
-        metaDescription: post.meta_description || '',
+        seoTitle: post.seoTitle || '',
+        metaDescription: post.metaDescription || '',
         keywords: post.keywords || [],
         status: post.status as 'draft' | 'published',
-        createdAt: post.created_at,
-        updatedAt: post.updated_at,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
         views: post.views,
-        readTime: post.read_time || '5 min read',
-        featuredImage: post.featured_image,
+        readTime: post.readTime || '5 min read',
+        featuredImage: post.featuredImage,
       }));
 
       setPosts(mappedPosts);
@@ -54,26 +49,28 @@ export const useBlogPosts = () => {
 
   const createPost = async (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views'>) => {
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .insert({
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: post.title,
           content: post.content,
           excerpt: post.excerpt,
           slug: post.slug,
           category: post.category,
-          seo_title: post.seoTitle,
-          meta_description: post.metaDescription,
+          seoTitle: post.seoTitle,
+          metaDescription: post.metaDescription,
           keywords: post.keywords,
           status: post.status,
-          read_time: post.readTime,
-          featured_image: post.featuredImage,
-        })
-        .select()
-        .single();
+          readTime: post.readTime,
+          featuredImage: post.featuredImage,
+          views: 0,
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create post');
 
+      const data = await response.json();
       await fetchPosts();
       return data;
     } catch (err: any) {
@@ -84,26 +81,16 @@ export const useBlogPosts = () => {
 
   const updatePost = async (id: string, updates: Partial<BlogPost>) => {
     try {
-      const dbUpdates: any = {};
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.content !== undefined) dbUpdates.content = updates.content;
-      if (updates.excerpt !== undefined) dbUpdates.excerpt = updates.excerpt;
-      if (updates.slug !== undefined) dbUpdates.slug = updates.slug;
-      if (updates.category !== undefined) dbUpdates.category = updates.category;
-      if (updates.seoTitle !== undefined) dbUpdates.seo_title = updates.seoTitle;
-      if (updates.metaDescription !== undefined) dbUpdates.meta_description = updates.metaDescription;
-      if (updates.keywords !== undefined) dbUpdates.keywords = updates.keywords;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
-      if (updates.readTime !== undefined) dbUpdates.read_time = updates.readTime;
-      if (updates.featuredImage !== undefined) dbUpdates.featured_image = updates.featuredImage;
-      if (updates.views !== undefined) dbUpdates.views = updates.views;
+      const response = await fetch(`/api/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
 
-      const { error } = await supabase
-        .from('blog_posts')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update post');
 
       await fetchPosts();
     } catch (err: any) {
@@ -114,12 +101,11 @@ export const useBlogPosts = () => {
 
   const deletePost = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('blog_posts')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`/api/posts/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete post');
 
       await fetchPosts();
     } catch (err: any) {

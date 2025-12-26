@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Expense, SavingsGoal, BillingCycle } from '@/types/finance';
 
 export const useFinance = () => {
@@ -10,21 +9,18 @@ export const useFinance = () => {
 
   const fetchExpenses = useCallback(async () => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('expenses')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/expenses');
+      if (!response.ok) throw new Error('Failed to fetch expenses');
+      const data = await response.json();
 
-      if (fetchError) throw fetchError;
-
-      const mappedExpenses: Expense[] = (data || []).map(exp => ({
+      const mappedExpenses: Expense[] = data.map((exp: any) => ({
         id: exp.id,
         name: exp.name,
         amount: Number(exp.amount),
-        billingCycle: exp.billing_cycle as BillingCycle,
-        isPaid: exp.is_paid,
-        createdAt: exp.created_at,
-        paidAt: exp.paid_at || undefined,
+        billingCycle: exp.billingCycle as BillingCycle,
+        isPaid: exp.isPaid,
+        createdAt: exp.createdAt,
+        paidAt: exp.paidAt || undefined,
       }));
 
       setExpenses(mappedExpenses);
@@ -36,23 +32,19 @@ export const useFinance = () => {
 
   const fetchSavingsGoal = useCallback(async () => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('savings_goals')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const response = await fetch('/api/savings-goals');
+      if (!response.ok) throw new Error('Failed to fetch savings goals');
+      const data = await response.json();
 
-      if (fetchError) throw fetchError;
-
-      if (data) {
+      if (data.length > 0) {
+        const goal = data[0]; // Take the first one
         setSavingsGoal({
-          id: data.id,
-          targetMonth: data.target_month,
-          targetAmount: Number(data.target_amount),
-          savedAmount: Number(data.saved_amount),
-          createdAt: data.created_at,
-          updatedAt: data.updated_at,
+          id: goal.id,
+          targetMonth: goal.targetMonth,
+          targetAmount: Number(goal.targetAmount),
+          savedAmount: Number(goal.savedAmount),
+          createdAt: goal.createdAt,
+          updatedAt: goal.updatedAt,
         });
       } else {
         setSavingsGoal(null);
@@ -76,15 +68,19 @@ export const useFinance = () => {
 
   const addExpense = async (name: string, amount: number, billingCycle: BillingCycle = 'monthly') => {
     try {
-      const { error } = await supabase
-        .from('expenses')
-        .insert({
+      const response = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name,
           amount,
-          billing_cycle: billingCycle,
-        });
+          billingCycle,
+          isPaid: false,
+          createdAt: new Date().toISOString(),
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to add expense');
 
       await fetchExpenses();
     } catch (err: any) {
@@ -95,19 +91,13 @@ export const useFinance = () => {
 
   const updateExpense = async (id: string, updates: Partial<Expense>) => {
     try {
-      const dbUpdates: any = {};
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.amount !== undefined) dbUpdates.amount = updates.amount;
-      if (updates.billingCycle !== undefined) dbUpdates.billing_cycle = updates.billingCycle;
-      if (updates.isPaid !== undefined) dbUpdates.is_paid = updates.isPaid;
-      if (updates.paidAt !== undefined) dbUpdates.paid_at = updates.paidAt;
+      const response = await fetch(`/api/expenses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
 
-      const { error } = await supabase
-        .from('expenses')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update expense');
 
       await fetchExpenses();
     } catch (err: any) {
@@ -118,12 +108,11 @@ export const useFinance = () => {
 
   const deleteExpense = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('expenses')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`/api/expenses/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete expense');
 
       await fetchExpenses();
     } catch (err: any) {
@@ -154,17 +143,24 @@ export const useFinance = () => {
   const setSavings = async (targetMonth: string, targetAmount: number, savedAmount: number = 0) => {
     try {
       // Delete existing goals first
-      await supabase.from('savings_goals').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const existingGoals = await fetch('/api/savings-goals').then(r => r.json());
+      for (const goal of existingGoals) {
+        await fetch(`/api/savings-goals/${goal.id}`, { method: 'DELETE' });
+      }
 
-      const { error } = await supabase
-        .from('savings_goals')
-        .insert({
-          target_month: targetMonth,
-          target_amount: targetAmount,
-          saved_amount: savedAmount,
-        });
+      const response = await fetch('/api/savings-goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetMonth,
+          targetAmount,
+          savedAmount,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to set savings goal');
 
       await fetchSavingsGoal();
     } catch (err: any) {
@@ -177,12 +173,16 @@ export const useFinance = () => {
     if (!savingsGoal) return;
 
     try {
-      const { error } = await supabase
-        .from('savings_goals')
-        .update({ saved_amount: amount })
-        .eq('id', savingsGoal.id);
+      const response = await fetch(`/api/savings-goals/${savingsGoal.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          savedAmount: amount,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update saved amount');
 
       await fetchSavingsGoal();
     } catch (err: any) {
@@ -194,12 +194,11 @@ export const useFinance = () => {
   const resetSavings = async () => {
     try {
       if (savingsGoal) {
-        const { error } = await supabase
-          .from('savings_goals')
-          .delete()
-          .eq('id', savingsGoal.id);
+        const response = await fetch(`/api/savings-goals/${savingsGoal.id}`, {
+          method: 'DELETE',
+        });
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to reset savings');
       }
 
       setSavingsGoal(null);

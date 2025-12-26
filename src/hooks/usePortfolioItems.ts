@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { PortfolioItem, PortfolioCategory } from '@/types/blog';
 
 export const usePortfolioItems = () => {
@@ -12,24 +11,20 @@ export const usePortfolioItems = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from('portfolio_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const response = await fetch('/api/portfolio');
+      if (!response.ok) throw new Error('Failed to fetch portfolio items');
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      const data = await response.json();
 
-      const mappedItems: PortfolioItem[] = (data || []).map(item => ({
+      const mappedItems: PortfolioItem[] = data.map((item: any) => ({
         id: item.id,
         title: item.title,
         category: item.category as PortfolioCategory,
-        mediaUrl: item.media_url,
-        mediaType: item.media_type as 'image' | 'video',
+        mediaUrl: item.mediaUrl,
+        mediaType: item.mediaType as 'image' | 'video',
         status: item.status as 'draft' | 'published',
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
       }));
 
       setItems(mappedItems);
@@ -47,20 +42,21 @@ export const usePortfolioItems = () => {
 
   const createItem = async (item: Omit<PortfolioItem, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('portfolio_items')
-        .insert({
+      const response = await fetch('/api/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           title: item.title,
           category: item.category,
-          media_url: item.mediaUrl,
-          media_type: item.mediaType,
+          mediaUrl: item.mediaUrl,
+          mediaType: item.mediaType,
           status: item.status,
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create portfolio item');
 
+      const data = await response.json();
       await fetchItems();
       return data;
     } catch (err: any) {
@@ -71,19 +67,16 @@ export const usePortfolioItems = () => {
 
   const updateItem = async (id: string, updates: Partial<PortfolioItem>) => {
     try {
-      const dbUpdates: any = {};
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.category !== undefined) dbUpdates.category = updates.category;
-      if (updates.mediaUrl !== undefined) dbUpdates.media_url = updates.mediaUrl;
-      if (updates.mediaType !== undefined) dbUpdates.media_type = updates.mediaType;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      const response = await fetch(`/api/portfolio/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
 
-      const { error } = await supabase
-        .from('portfolio_items')
-        .update(dbUpdates)
-        .eq('id', id);
-
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update portfolio item');
 
       await fetchItems();
     } catch (err: any) {
@@ -94,12 +87,11 @@ export const usePortfolioItems = () => {
 
   const deleteItem = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('portfolio_items')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`/api/portfolio/${id}`, {
+        method: 'DELETE',
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete portfolio item');
 
       await fetchItems();
     } catch (err: any) {
