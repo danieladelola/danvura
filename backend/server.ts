@@ -19,7 +19,7 @@ app.use(express.static(path.join(process.cwd(), 'dist')));
 
 app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
 
-const upload = multer({ dest: 'temp/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
 await ensureDirectories();
 
@@ -35,7 +35,7 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
     const filePath = path.join('media', 'files', newName);
     const fullFilePath = path.join(process.cwd(), 'public', 'appdata', filePath);
 
-    await fs.rename(file.path, fullFilePath);
+    await fs.writeFile(fullFilePath, file.buffer);
 
     const meta = {
       id,
@@ -59,7 +59,7 @@ app.post('/api/media/upload', upload.single('file'), async (req, res) => {
 
 app.get('/api/media', async (req, res) => {
   try {
-    const index = await readJson('media/index.json');
+    const index = await readJson('media/index.json').catch(() => []);
     res.json(index);
   } catch (error) {
     res.status(500).json({ error: error.message });
