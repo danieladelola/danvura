@@ -1,0 +1,8 @@
+{
+  "id": "453f5788-096f-49ac-874e-d11a4d182a40",
+  "name": "data",
+  "amount": 30000,
+  "billingCycle": "monthly",
+  "isPaid": false,
+  "createdAt": "2025-12-26T15:52:29.086Z"
+}
