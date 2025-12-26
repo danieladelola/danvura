@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -21,6 +21,7 @@ import { useState } from 'react';
 const AdminSidebar = () => {
   const location = useLocation();
   const { logout } = useAdminAuth();
+  const navigate = useNavigate();
   const [expandedSections, setExpandedSections] = useState<string[]>(['blog', 'newsletter']);
 
   const navItems = [
@@ -177,7 +178,7 @@ const AdminSidebar = () => {
           View Site
         </Link>
         <button
-          onClick={logout}
+          onClick={() => navigate('/admin/login')}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
         >
           <LogOut size={18} />
