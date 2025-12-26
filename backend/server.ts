@@ -1,4 +1,5 @@
 import express from 'express';
+import session from 'express-session';
 import cors from 'cors';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,13 +12,28 @@ import { ensureDirectories, readJson, writeJson, deleteFile, listDir, invalidate
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
 
-// Serve static files from the built frontend
-// app.use(express.static(path.join(process.cwd(), 'dist')));
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // secure in production
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
-// app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
+// Serve static files from the built frontend
+app.use(express.static(path.join(process.cwd(), 'dist')));
+
+app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -90,6 +106,37 @@ app.put('/api/media/:id', async (req, res) => {
     res.json(newMeta);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin authentication routes
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  if (email === 'hello@danadelola.com' && password === 'Ade1997@.') {
+    (req.session as any).isAdmin = true;
+    (req.session as any).user = { email };
+    res.json({ success: true, user: { email } });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      res.status(500).json({ error: 'Logout failed' });
+    } else {
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    }
+  });
+});
+
+app.get('/api/admin/status', (req, res) => {
+  if ((req.session as any).isAdmin) {
+    res.json({ isAuthenticated: true, isAdmin: true, user: (req.session as any).user });
+  } else {
+    res.json({ isAuthenticated: false, isAdmin: false });
   }
 });
 
@@ -571,9 +618,9 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // Catch-all handler: send back index.html for client-side routing
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
-// });
+app.get('*', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

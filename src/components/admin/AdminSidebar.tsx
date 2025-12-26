@@ -178,7 +178,10 @@ const AdminSidebar = () => {
           View Site
         </Link>
         <button
-          onClick={() => navigate('/admin/login')}
+          onClick={async () => {
+            await logout();
+            navigate('/admin/login');
+          }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
         >
           <LogOut size={18} />
