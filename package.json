@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "tsx backend/server.ts"
+    "server": "tsx backend/server.ts",
+    "start": "npm run build && tsx backend/server.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

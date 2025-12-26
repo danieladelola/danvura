@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the built frontend
+app.use(express.static(path.join(process.cwd(), 'dist')));
+
 app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
 
 const upload = multer({ dest: 'temp/' });
@@ -565,6 +568,11 @@ cron.schedule('0 0 * * *', async () => {
   archive.pipe(output);
   archive.directory(path.join(process.cwd(), 'public', 'appdata'), false);
   await archive.finalize();
+});
+
+// Catch-all handler: send back index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
