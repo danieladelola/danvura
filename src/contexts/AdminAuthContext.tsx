@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
@@ -15,6 +16,7 @@ const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefin
 
 export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // For file-based system, always consider admin as authenticated
@@ -32,7 +34,8 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    // Stub implementation
+    // Navigate to login page
+    navigate('/admin/login');
   };
 
   const value = {
