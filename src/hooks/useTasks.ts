@@ -83,7 +83,7 @@ export const useTasks = () => {
 
   const createTask = async (taskData: Omit<Task, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const response = await fetch('http://localhost:3001/api/tasks', {
+      const response = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +111,7 @@ export const useTasks = () => {
 
   const updateTask = async (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+      const response = await fetch(`/api/tasks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export const useTasks = () => {
 
   const deleteTask = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/tasks/${id}`, {
+      const response = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
       });
 
