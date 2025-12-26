@@ -64,6 +64,42 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
+## Deploying to Coolify
+
+This project is configured for deployment on a Coolify v4 instance.
+
+### 1. Prerequisites
+
+- A working Coolify v4 instance.
+- A GitHub repository with your project code.
+
+### 2. Setup in Coolify
+
+1.  **Create a New Resource:**
+    *   From your Coolify dashboard, create a new "Application" resource.
+    *   Select your Git repository and branch.
+    *   Coolify will detect the `docker-compose.yml` file. Select the `app` service to deploy.
+
+2.  **Configure Build Settings:**
+    *   **Build Pack:** Select `Docker Compose`.
+    *   **Docker Compose File Location:** Set to `/docker-compose.yml`.
+
+3.  **Set Environment Variables:**
+    *   In the "Environment Variables" tab for your application, add the following secrets. These are essential for security and proper application function.
+    *   `ADMIN_EMAIL`: The email address for the admin account (e.g., `admin@example.com`).
+    *   `ADMIN_PASSWORD`: The password for the admin account.
+    *   `SESSION_SECRET`: A long, random string used to secure user sessions. You can generate one with `openssl rand -base64 32`.
+
+4.  **Configure Persistent Storage:**
+    *   This application stores data (posts, media, settings, etc.) as JSON files. To prevent data loss on redeploy, you must set up a persistent volume.
+    *   Go to the "Storage" tab for your application.
+    *   Add a new "Volume".
+    *   **Host Path:** This is the path on your server where the data will be stored (e.g., `/var/data/danadelola-appdata`). Coolify will manage this.
+    *   **Container Path:** Set this to `/app/public/appdata`. This must match the volume path defined in the `docker-compose.yml` file.
+
+5.  **Deploy:**
+    *   Click the "Deploy" button. Coolify will clone your repository, build the Docker image using the multi-stage `Dockerfile`, and start the service defined in your `docker-compose.yml`.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

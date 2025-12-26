@@ -4,13 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"tsx backend/server.ts\" \"vite\"",
+    "start:dev": "concurrently \"npm run start:backend\" \"vite\"",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "tsx backend/server.ts",
-    "start": "concurrently \"tsx backend/server.ts\" \"vite\""
+    "start:backend": "tsx backend/server.ts",
+    "start": "npm run build && npm run start:backend",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

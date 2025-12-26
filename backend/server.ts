@@ -12,6 +12,15 @@ import { ensureDirectories, readJson, writeJson, deleteFile, listDir, invalidate
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminPassword = process.env.ADMIN_PASSWORD;
+const sessionSecret = process.env.SESSION_SECRET;
+
+if (!adminEmail || !adminPassword || !sessionSecret) {
+  console.error('FATAL ERROR: ADMIN_EMAIL, ADMIN_PASSWORD, and SESSION_SECRET environment variables must be set.');
+  process.exit(1);
+}
+
 app.use(cors({
   origin: true,
   credentials: true
@@ -20,7 +29,7 @@ app.use(express.json());
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -589,7 +598,8 @@ cron.schedule('0 0 * * *', async () => {
 // Admin authentication routes
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
-  if (email === 'hello@danadelola.com' && password === 'Ade1997@.') {
+
+  if (email === adminEmail && password === adminPassword) {
     (req.session as any).isAdmin = true;
     (req.session as any).user = { email };
     res.json({ success: true, user: { email } });
