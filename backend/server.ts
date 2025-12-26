@@ -15,9 +15,9 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from the built frontend
-app.use(express.static(path.join(process.cwd(), 'dist')));
+// app.use(express.static(path.join(process.cwd(), 'dist')));
 
-app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
+// app.use('/appdata', express.static(path.join(process.cwd(), 'public', 'appdata')));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -571,9 +571,9 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // Catch-all handler: send back index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+// });
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
