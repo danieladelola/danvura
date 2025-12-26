@@ -618,7 +618,7 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // Catch-all handler: send back index.html for client-side routing
-app.get('*', (req, res) => {
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
 });
 
