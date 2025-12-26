@@ -109,37 +109,6 @@ app.put('/api/media/:id', async (req, res) => {
   }
 });
 
-// Admin authentication routes
-app.post('/api/admin/login', (req, res) => {
-  const { email, password } = req.body;
-  if (email === 'hello@danadelola.com' && password === 'Ade1997@.') {
-    (req.session as any).isAdmin = true;
-    (req.session as any).user = { email };
-    res.json({ success: true, user: { email } });
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' });
-  }
-});
-
-app.post('/api/admin/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      res.status(500).json({ error: 'Logout failed' });
-    } else {
-      res.clearCookie('connect.sid');
-      res.json({ success: true });
-    }
-  });
-});
-
-app.get('/api/admin/status', (req, res) => {
-  if ((req.session as any).isAdmin) {
-    res.json({ isAuthenticated: true, isAdmin: true, user: (req.session as any).user });
-  } else {
-    res.json({ isAuthenticated: false, isAdmin: false });
-  }
-});
-
 // Similar for posts, emails, users, settings
 // For brevity, I'll add basic CRUD for posts as example
 
@@ -615,6 +584,37 @@ cron.schedule('0 0 * * *', async () => {
   archive.pipe(output);
   archive.directory(path.join(process.cwd(), 'public', 'appdata'), false);
   await archive.finalize();
+});
+
+// Admin authentication routes
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  if (email === 'hello@danadelola.com' && password === 'Ade1997@.') {
+    (req.session as any).isAdmin = true;
+    (req.session as any).user = { email };
+    res.json({ success: true, user: { email } });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      res.status(500).json({ error: 'Logout failed' });
+    } else {
+      res.clearCookie('connect.sid');
+      res.json({ success: true });
+    }
+  });
+});
+
+app.get('/api/admin/status', (req, res) => {
+  if ((req.session as any).isAdmin) {
+    res.json({ isAuthenticated: true, isAdmin: true, user: (req.session as any).user });
+  } else {
+    res.json({ isAuthenticated: false, isAdmin: false });
+  }
 });
 
 // Catch-all handler: send back index.html for client-side routing
